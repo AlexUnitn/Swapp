@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="it">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<link rel="stylesheet" href="styles.css" />
+	<title>Scelta oggetti — Cards</title>
+</head>
+<body>
+  <div class="top" role="region" aria-label="Barra di ricerca stile">
+    <div class="search-like" aria-hidden="false">
+      <!-- search icon -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 21L16.65 16.65" stroke="#344154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="11" cy="11" r="6" stroke="#344154" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input type="text" placeholder="Cerca oggetti..." aria-label="Cerca oggetti" />
+    </div>
+    <button class="filter-btn" aria-label="Filtri">Filtri</button>
+  </div>
+
+  <main class="container" role="main" aria-label="Elenco oggetti">
+    <!-- Colonna 1 -->
+    <section class="col" aria-label="Colonna sinistra">
+      <!-- Card 1 (prenotabile) -->
+      <article class="card" aria-labelledby="t1">
+        <div class="thumb" aria-hidden="true">
+          <!-- placeholder svg image -->
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140' viewBox='0 0 200 140'><rect rx='12' width='200' height='140' fill='%23dbeafe'/><g transform='translate(14,14)'><rect width='60' height='60' rx='8' fill='%237fb1ff'/><rect x='74' y='6' width='100' height='18' rx='6' fill='%23ffffff' opacity='0.7'/><rect x='74' y='32' width='70' height='12' rx='6' fill='%23ffffff' opacity='0.6'/></g></svg>" alt="Immagine oggetto 1">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t1">Bicicletta da città — Modello A</div>
+            <div class="availability" title="Prenotabile">
+              <span class="dot green" aria-hidden="true"></span>
+              <span class="avail-text">Prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 1.2 chilometri">
+              <!-- location pin icon -->
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>1.2 km</span>
+            </div>
+            <div class="subtitle">Categoria: Mobilità</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 (non prenotabile) -->
+      <article class="card" aria-labelledby="t2">
+        <div class="thumb" aria-hidden="true">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140'><rect rx='12' width='200' height='140' fill='%23fff1f2'/><g transform='translate(18,18)'><circle cx='30' cy='30' r='28' fill='%23ffb4b6'/><rect x='70' y='10' width='88' height='16' rx='6' fill='%23ffffff' opacity='0.8'/></g></svg>" alt="Immagine oggetto 2">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t2">Macchina fotografica compatta</div>
+            <div class="availability" title="Non prenotabile">
+              <span class="dot red" aria-hidden="true"></span>
+              <span class="avail-text">Non prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 3.4 chilometri">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>3.4 km</span>
+            </div>
+            <div class="subtitle">Categoria: Foto</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 (prenotabile) -->
+      <article class="card" aria-labelledby="t3">
+        <div class="thumb" aria-hidden="true">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140'><rect rx='12' width='200' height='140' fill='%23eafff0'/><g transform='translate(16,16)'><rect width='56' height='56' rx='8' fill='%2310b981'/><rect x='78' y='8' width='90' height='12' rx='6' fill='%23ffffff' opacity='0.7'/></g></svg>" alt="Immagine oggetto 3">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t3">Set attrezzi professionale</div>
+            <div class="availability" title="Prenotabile">
+              <span class="dot green" aria-hidden="true"></span>
+              <span class="avail-text">Prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 450 metri">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>450 m</span>
+            </div>
+            <div class="subtitle">Categoria: Fai-da-te</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Colonna 2 -->
+    <section class="col" aria-label="Colonna destra">
+      <!-- Card 4 (non prenotabile) -->
+      <article class="card" aria-labelledby="t4">
+        <div class="thumb" aria-hidden="true">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140'><rect rx='12' width='200' height='140' fill='%23fff8e6'/><g transform='translate(16,16)'><rect width='56' height='56' rx='8' fill='%23f59e0b'/><rect x='78' y='8' width='90' height='12' rx='6' fill='%23ffffff' opacity='0.7'/></g></svg>" alt="Immagine oggetto 4">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t4">Tavolo pieghevole</div>
+            <div class="availability" title="Non prenotabile">
+              <span class="dot red" aria-hidden="true"></span>
+              <span class="avail-text">Non prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 2.1 chilometri">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>2.1 km</span>
+            </div>
+            <div class="subtitle">Categoria: Casa</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 5 (prenotabile) -->
+      <article class="card" aria-labelledby="t5">
+        <div class="thumb" aria-hidden="true">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140'><rect rx='12' width='200' height='140' fill='%23eef2ff'/><g transform='translate(16,16)'><rect width='56' height='56' rx='8' fill='%237c3aed'/><rect x='78' y='8' width='90' height='12' rx='6' fill='%23ffffff' opacity='0.7'/></g></svg>" alt="Immagine oggetto 5">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t5">Proiettore portatile</div>
+            <div class="availability" title="Prenotabile">
+              <span class="dot green" aria-hidden="true"></span>
+              <span class="avail-text">Prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 600 metri">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>600 m</span>
+            </div>
+            <div class="subtitle">Categoria: Elettronica</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 6 (prenotabile) -->
+      <article class="card" aria-labelledby="t6">
+        <div class="thumb" aria-hidden="true">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='140'><rect rx='12' width='200' height='140' fill='%23f0fdf4'/><g transform='translate(16,16)'><rect width='56' height='56' rx='8' fill='%2300c853'/><rect x='78' y='8' width='90' height='12' rx='6' fill='%23ffffff' opacity='0.7'/></g></svg>" alt="Immagine oggetto 6">
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="title" id="t6">Cuffie Bluetooth</div>
+            <div class="availability" title="Prenotabile">
+              <span class="dot green" aria-hidden="true"></span>
+              <span class="avail-text">Prenotabile</span>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="distance" aria-label="Distanza 5.8 chilometri">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 11.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 11.5c0 6.5-7 10.5-7 10.5S5 18 5 11.5a7 7 0 1 1 14 0z" stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>5.8 km</span>
+            </div>
+            <div class="subtitle">Categoria: Audio</div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+</body>
+</html>

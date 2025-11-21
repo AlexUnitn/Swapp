@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>Registrazione – Swapp</title>
+		<link rel="stylesheet" href="styles.css"/>
+	</head>
+	<body>
+		<div class="form-wrapper">
+			<h1>Registrazione</h1>
+			<form id="regForm" novalidate>
+				
+			<div class="field">
+				<label for="nome">Nome</label>
+				<input id="nome" name="nome" type="text" required minlength="2"/>
+			</div>
+
+			<div class="field">
+				<label for="cognome">Cognome</label>
+				<input id="cognome" name="cognome" type="text" required minlength="2"/>
+			</div>
+
+			<div class="field">
+				<label for="indirizzo">Indirizzo</label>
+				<input id="indirizzo" name="indirizzo" type="text" minlength="10" required/>
+			</div>
+
+			<div class="field">
+				<label for="cf">Codice Fiscale</label>
+				<input id="cf" name="cf" type="text" maxlength="16" minlength="16" required/>
+			</div>
+
+			<div class="field">
+				<label for="username">Username</label>
+				<input id="username" name="username" type="text" required pattern="^[a-zA-Z0-9_]{3,20}$"/>
+			</div>
+
+			<div class="field">
+				<label for="email">Email</label>
+				<input id="email" name="email" type="email" required/>
+			</div>
+
+			<div class="field">
+				<label for="password">Password</label>
+				<input id="password" name="password" type="password" required minlength="8"/>
+			</div>
+
+			<div class="field">
+				<label for="telefono">Telefono</label>
+				<input id="telefono" name="telefono" type="tel" pattern="^\+?\d{8,15}$" required/>
+			</div>
+
+			<button type="submit" class="btn">Crea account</button>
+			</form>
+		</div>
+
+		<div id="modalRequired" class="modal-overlay">
+			<div class="modal-box">
+				<h2>Attenzione</h2>
+				<p>I seguenti campi sono richiesti:</p>
+				<ul id="missingList"></ul>
+				<button class="btn" onclick="closeRequiredModal()">OK</button>
+			</div>
+		</div>
+
+		<script src="script.js"></script>
+	</body>
+</html>
