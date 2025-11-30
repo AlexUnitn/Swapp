@@ -115,3 +115,30 @@ input:invalid:not(:focus) { border-color: var(--error); }
   text-align: left;
   color: var(--error);
 }
+.login {
+	text-align: center;
+}
+
+/* css file or <style> block */
+.top-left-back {
+  position: fixed;   /* keeps it in viewport */
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+}
+
+.home-btn {
+  display: inline-block;
+  padding: 8px 14px;
+  background: #0084ff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background .2s;
+}
+
+.home-btn:hover {
+  background: #006dd9;
+}

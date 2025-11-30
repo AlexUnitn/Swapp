@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Account Settings</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+	<div class="top-left-back">
+		<a href="../main/index.html" class="home-btn">← Home</a>
+	</div>
+  <div class="wrap">
+    <h1>Account Settings</h1>
+
+    <form id="accountForm" class="card" novalidate>
+      <!-- Avatar -->
+      <label class="avatar-box">
+        <img id="avatarPreview" src="avatar.png" alt="Avatar" />
+        <input type="file" id="avatarInput" accept="image/*" hidden />
+        <span class="avatar-hint">Change photo</span>
+      </label>
+
+      <!-- Fields -->
+      <div class="field">
+        <label>Full name</label>
+        <p class="static" id="fullNameText">Jane Doe</p>
+        <input class="edit-input" type="text" name="fullName" value="Jane Doe" required />
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <p class="static" id="usernameText">jane_doe</p>
+        <input class="edit-input" type="text" name="username" value="jane_doe" required />
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <p class="static" id="emailText">jane@example.com</p>
+        <input class="edit-input" type="email" name="email" value="jane@example.com" required />
+      </div>
+
+      <div class="field">
+        <label>Bio</label>
+        <p class="static" id="bioText">Travel & code</p>
+        <textarea class="edit-input" name="bio" rows="3">Travel & code</textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div class="actions">
+        <button type="button" id="editBtn" class="btn secondary">Edit</button>
+        <button type="submit" id="saveBtn" class="btn primary hidden">Save</button>
+        <button type="button" id="cancelBtn" class="btn ghost hidden">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

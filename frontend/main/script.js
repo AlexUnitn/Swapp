@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const filterPill = document.getElementById('filterPill');
 	const filterText = filterPill.querySelector('.filter-text');
 	const filterX = filterPill.querySelector('.filter-remove');
+	const userIconLink = document.getElementById('userIconLink');
 
 	let activeCategory = '';
 
@@ -55,6 +56,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (e.key === "Enter")
 			goToResults();
 	});
+
+	//account page
+
+	userIconLink.addEventListener('click', e => {
+    e.preventDefault(); // stop the instant jump
+    const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+    location.href = isLoggedIn
+    	? '../account/account.html'
+    	: '../login/login.html';
+  });
 
 	/* ---------- dropdown ---------- */
 	arrow.addEventListener("click", () => {
