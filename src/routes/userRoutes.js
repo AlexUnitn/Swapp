@@ -8,5 +8,7 @@ router.get('/', userController.getUser)
 router.post('/', userController.createUser)
 // PUT api/user/:id
 router.put('/:id', userController.updateUser)
+// GET api/user/:id
+router.get('/:id', userController.getUserById)
 
 module.exports = router
