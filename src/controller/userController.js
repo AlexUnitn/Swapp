@@ -10,3 +10,17 @@ async function getUser(req,res){
     }
 
 }
+// create a user
+async function createUser(req,res){
+    try{
+        const user = await userModel.create(req.body)
+        return res.status(201).json(user)
+    } catch (err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
+module.exports = {
+    getUser,
+    createUser
+}
