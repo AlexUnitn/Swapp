@@ -3,7 +3,7 @@ const userModel = require('../models/user')
 
 
 // get all user
-async function getUser(req,res){
+async function getUser(req, res){
     try{
         //TODO: aggiungere middleware per l'autenticazione
         const users = await userModel.find()
@@ -17,10 +17,11 @@ async function getUser(req,res){
 
 }
 
+// get a user by ID
 async function getUserById(req, res){
     try {
         //TODO: aggiungere middleware per l'autenticazione
-        const user = await userModel.findById(res.params.id)
+        const user = await userModel.findById(req.params.id)
         if (!user){
             return res.status(404).json({message: 'User not found'})
         }
