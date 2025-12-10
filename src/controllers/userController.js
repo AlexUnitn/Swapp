@@ -1,7 +1,5 @@
 const userModel = require('../models/user')
 
-
-
 // get all user
 async function getUser(req, res){
     try{
@@ -34,12 +32,24 @@ async function getUserById(req, res){
 // create a user
 async function createUser(req,res){
     try{
+        // TODO: hashare la password
         const user = await userModel.create(req.body)
         if (!user) {
             return res.status(400).json({message: 'User not created'})
         }
-        return res.status(201).json(user)
+        // toglie la password per non restituirla in risposta
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        return res.status(201).json(userResponse)
     } catch (err){
+        // controlla quale campo è duplicato e lo segnala
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyPattern)[0];
+            return res.status(400).json({ 
+                message: `${field} is already registered`
+            });
+        }
         return res.status(500).json({message: err.message})
     }
 }
@@ -58,10 +68,25 @@ async function updateUser(req,res){
     }
 }
 
+// delete a user by ID
+async function deleteUser(req,res){
+    try{
+        //TODO: aggiungere middleware per l'autenticazione
+        const user = await userModel.findByIdAndDelete(req.params.id)
+        if (!user){
+            return res.status(404).json({message: 'User not found'})
+        }
+        return res.status(200).json({message: "User deleted"})
+
+    }catch(err){
+        return res.status(500).json({message: err.message})
+    }
+}
 
 module.exports = {
     getUser,
     createUser,
     updateUser,
-    getUserById
+    getUserById,
+    deleteUser
 }
