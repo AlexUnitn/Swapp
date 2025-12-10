@@ -8,7 +8,12 @@ async function getUser(req, res){
         if (!users) {
             return res.status(404).json({message: 'Users not found'})
         }
-        return res.status(200).json(users)
+
+        // elimina la password dal risultato
+        const findUsers = users.map(user => user.toObject());
+        findUsers.forEach(user => delete user.password);
+
+        return res.status(200).json(findUsers)
     } catch (err){
         return res.status(500).json({message: err.message})
     }
@@ -23,7 +28,12 @@ async function getUserById(req, res){
         if (!user){
             return res.status(404).json({message: 'User not found'})
         }
-        return res.status(200).json(user)
+        
+        // elimina la password dal risultato
+        const findUser = user.toObject();
+        delete findUser.password;
+
+        return res.status(200).json(findUser)
     } catch(err){
         return res.status(500).json({message: err.message})
     }
@@ -37,11 +47,8 @@ async function createUser(req,res){
         if (!user) {
             return res.status(400).json({message: 'User not created'})
         }
-        // toglie la password per non restituirla in risposta
-        const userResponse = user.toObject();
-        delete userResponse.password;
-
-        return res.status(201).json(userResponse)
+        
+        return res.status(201).json({message: 'User created'})
     } catch (err){
         // controlla quale campo è duplicato e lo segnala
         if (err.code === 11000) {
@@ -62,7 +69,7 @@ async function updateUser(req,res){
         if (!user) {
             return res.status(404).json({message: 'User not found'})
         }
-        return res.status(200).json(user)
+        return res.status(200).json({message: 'User updated'})
     } catch (err){
         return res.status(500).json({message: err.message})
     }
