@@ -12,7 +12,7 @@ router.put('/:id', itemController.updateItem)
 router.get('/:id', itemController.getItemById)
 // DELETE api/item/:id
 router.delete('/:id', itemController.deleteItem)
-// GET api/item/:userId
-router.get('/:userId', itemController.getItemsByUserId)
+// GET api/item/user/:userId
+router.get('/user/:userId', itemController.getItemsByUserId)
 
 module.exports = router
