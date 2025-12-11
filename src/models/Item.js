@@ -3,7 +3,7 @@ const {Schema} = mongoose
 
 const ItemSchema = new Schema({
   title: { type: String, required: true, minlength: 5, maxlength: 100 },
-  description: { type: String, required: true, minlength: 20, maxlength: 2000 },
+  description: { type: String, required: true, minlength: 5, maxlength: 2000 },
   
   // Riferimento all'utente (Relazione)
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -29,8 +29,8 @@ const ItemSchema = new Schema({
   },
   
   unavailablePeriods: [{
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true }
+    startDate: { type: Date},
+    endDate: { type: Date }
   }]
 
 }, { timestamps: true });
