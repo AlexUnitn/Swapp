@@ -91,5 +91,6 @@ module.exports = {
     createItem,
     updateItem,
     getItemById,
-    deleteItem
+    deleteItem,
+    getItemsByUserId
 }
