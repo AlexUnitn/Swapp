@@ -3,7 +3,6 @@ const {Schema} = mongoose
 
 const bookingSchema = new Schema({
     item: { type: Schema.Types.ObjectId, ref: 'Item', required: true },
-    lender: { type: Schema.Types.ObjectId, ref: 'User', required: true },   // Prestatore
     borrower: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Chi prende in prestito
   
     requestedStartDate: { type: Date, required: true },
