@@ -43,7 +43,7 @@ async function createBooking (req,res){
     }
 }
 
-// delete a booking
+// delete a booking by Id
 async function deleteBooking(req,res){
     try {
         const booking = await bookingModel.findByIdAndDelete(req.params.id)
@@ -56,8 +56,22 @@ async function deleteBooking(req,res){
     }
 }
 
+// update a booking by Id
+async function updateBooking(req,res){
+    try {
+        const booking = await bookingModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' })
+        }
+        return res.status(200).json(booking)
+    } catch (err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
 module.exports = {
     getBookings,
     createBooking, 
-    deleteBooking
+    deleteBooking,
+    updateBooking
 }

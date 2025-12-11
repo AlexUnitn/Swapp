@@ -8,6 +8,8 @@ router.get('/', bookingController.getBookings)
 router.post('/', bookingController.createBooking)
 // DELETE api/booking
 router.delete('/:id', bookingController.deleteBooking)
+// PUT api/booking/:id
+router.put('/:id', bookingController.updateBooking)
 
 
 module.exports = router
