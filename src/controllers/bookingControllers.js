@@ -22,17 +22,9 @@ async function createBooking (req,res){
         if (!item) {
             return res.status(404).json({ message: 'Item not found' })
         }
-        const lender = await userModel.findById(req.body.lender)
-        if (!lender) {
-            return res.status(404).json({ message: 'Lender not found' })
-        }
         const borrower = await userModel.findById(req.body.borrower)
         if (!borrower) {
             return res.status(404).json({ message: 'Borrower not found' })
-        }
-
-        if (lender == borrower){
-            return res.status(404).json({ message: 'Lender and borrower cannot be the same person' })
         }
 
         if (item.status != 'available'){
@@ -43,6 +35,8 @@ async function createBooking (req,res){
         if (!booking) {
             return res.status(404).json({ message: 'Booking not created' })
         }
+
+        return res.status(201).json(booking)
 
     } catch (err){
         res.status(500).json({message: err.message})
