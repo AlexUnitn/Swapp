@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const {Schema} = mongoose 
 
 const bookingSchema = new Schema({
-    object: { type: Schema.Types.ObjectId, ref: 'Object', required: true },
+    item: { type: Schema.Types.ObjectId, ref: 'Item', required: true },
     lender: { type: Schema.Types.ObjectId, ref: 'User', required: true },   // Prestatore
     borrower: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Chi prende in prestito
   
