@@ -43,7 +43,21 @@ async function createBooking (req,res){
     }
 }
 
+// delete a booking
+async function deleteBooking(req,res){
+    try {
+        const booking = await bookingModel.findByIdAndDelete(req.params.id)
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' })
+        }
+        return res.status(200).json({ message: 'Booking deleted' })
+    } catch (err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
 module.exports = {
     getBookings,
-    createBooking
+    createBooking, 
+    deleteBooking
 }
