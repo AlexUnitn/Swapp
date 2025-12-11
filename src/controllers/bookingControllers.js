@@ -3,7 +3,7 @@ const itemModel = require('../models/Item')
 const userModel = require('../models/User')
 
 // get all bookings
-async function getAllBookings (req,res){
+async function getBookings (req,res){
     try{
         const bookings = await bookingModel.find()
         if (!bookings) {
