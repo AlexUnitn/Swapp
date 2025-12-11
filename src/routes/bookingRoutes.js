@@ -10,6 +10,7 @@ router.post('/', bookingController.createBooking)
 router.delete('/:id', bookingController.deleteBooking)
 // PUT api/booking/:id
 router.put('/:id', bookingController.updateBooking)
-
+// GET api/booking/:id
+router.get('/:id', bookingController.getBookingById)
 
 module.exports = router
