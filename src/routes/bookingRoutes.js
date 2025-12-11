@@ -12,5 +12,7 @@ router.delete('/:id', bookingController.deleteBooking)
 router.put('/:id', bookingController.updateBooking)
 // GET api/booking/:id
 router.get('/:id', bookingController.getBookingById)
+// GET api/booking/user/:id
+router.get('/user/:id', bookingController.getBookingsByUserId)
 
 module.exports = router
