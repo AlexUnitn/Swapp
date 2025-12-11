@@ -18,7 +18,7 @@ async function getItem(req, res){
 // get a item by itemID
 async function getItemById(req, res){
     try {
-        const item = await userModel.findById(req.params.id)
+        const item = await itemModel.findById(req.params.id)
         if (!item){
             return res.status(404).json({message: 'Item not found'})
         }
