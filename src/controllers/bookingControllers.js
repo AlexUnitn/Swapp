@@ -50,6 +50,6 @@ async function createBooking (req,res){
 }
 
 module.exports = {
-    getAllBookings,
+    getBookings,
     createBooking
 }
