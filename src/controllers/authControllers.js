@@ -25,6 +25,8 @@ async function register(req, res){
         
         //create user 
         const newUser = new userModel({
+            firstName:req.body.firstName,
+            lastName: req.body.lastName,
             username: req.body.username,
             email: req.body.email,
             phoneNumber: req.body.phoneNumber,
@@ -47,7 +49,7 @@ async function register(req, res){
                 id: savedUser._id,
                 username:savedUser.username,
                 email:savedUser.email,
-                role:saveduser.role
+                role:savedUser.role
             } 
         })
 
