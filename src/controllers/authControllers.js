@@ -56,6 +56,86 @@ async function register(req, res){
     }
 }
 
+async function login(req, res){
+    try {
+        const { email, username, phoneNumber, password } = req.body
+
+        // check password not blank
+        if (!password?.trim()){
+            return res.status(400).json({message: 'Password is required'})
+        }
+
+        // check request body has at least one identifier
+        if (!email?.trim() && !username?.trim() && !phoneNumber?.trim()) {
+            return res.status(400).json({message: 'Email, username or phone number is required'})
+        }
+
+        // Build query dynamically based on provided fields
+        const query = {};
+        if (email?.trim()) query.email = email.trim();
+        else if (username?.trim()) query.username = username.trim();
+        else if (phoneNumber?.trim()) query.phoneNumber = phoneNumber.trim();
+
+        // check the user exists
+        const existingUser = await userModel.findOne(query)
+        if (!existingUser) {
+            return res.status(400).json({message: 'Invalid credentials'})
+        }
+
+        //validate password 
+        const isPasswordValid = await bcrypt.compare(password, existingUser.password)
+        if (!isPasswordValid) {
+            return res.status(400).json({message: 'Invalid credentials'})
+        }
+
+        // Check valid token in the header
+        const authHeader = req.header('Authorization')
+        if (authHeader){
+            const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7, authHeader.length) : authHeader;
+
+            try{
+                // verify validity of the existing token
+                jwt.verify(token, process.env.JWT_SECRET)
+
+                // login successful with existing token
+                return res.status(200).json({
+                    message: 'Login successful',
+                    token: token,
+                    user: {
+                        id: existingUser._id,
+                        username: existingUser.username,
+                        email: existingUser.email,
+                        role: existingUser.role
+                    }
+                })
+            } catch (tokenError){
+                // Token invalid or expired, proceed to create a new one
+            }
+        } 
+
+        // create new token
+        const token = jwt.sign(
+            { id: existingUser._id, role: existingUser.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.status(200).json({
+            message: 'Login successful',
+            token,
+            user: {
+                id: existingUser._id,
+                username: existingUser.username,
+                email: existingUser.email,
+                role: existingUser.role
+            }
+        });
+    } catch (err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
 module.exports = {
-    register
+    register,
+    login
 }
