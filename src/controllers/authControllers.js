@@ -1,6 +1,7 @@
 const userModel = require('../models/User')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const validate = require('../utils/validation')
 
 // register new user
 async function register(req, res){
@@ -12,6 +13,20 @@ async function register(req, res){
             return res.status(400).json({message: 'All fields are required'})
         }
 
+        // validate email format
+        if(!validate.isValidEmail(email)){
+            return res.status(400).json({message: 'Invalid email format'})
+        }
+
+        // validate phone number format
+        if (!validate.isValidPhoneNumber(phoneNumber)){
+            return res.status(400).json({message: 'Invalid phone number format'})
+        }
+
+        // validate password format
+        if (!validate.isValidPassword(password)){
+            return res.status(400).json({message: 'Invalid password format'})
+        }
 
         // check if user already exists
         const existingUser = await userModel.findOne({$or: [{email: req.body.email}, {username: req.body.username}, {phoneNumber: req.body.phoneNumber}]})
