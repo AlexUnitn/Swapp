@@ -1,5 +1,5 @@
 const isValidEmail = (email) => {
-    return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const isValidPhoneNumber = (phoneNumber) => {
