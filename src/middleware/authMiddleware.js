@@ -2,12 +2,15 @@ const jwt = require('jsonwebtoken')
 
 module.exports = function(req, res, next){
 
-    // Find the token in the header
-    const token = req.header('Authorization')
-    
-    if (!token) {
-        return res.status(401).send('Denied access: no token provided')
+    // obtains authorization header
+    const authHeader = req.header('Authorization')
+    if (!authHeader) {
+        return res.status(401).json({message: 'Denied access: no token provided'})
     }
+
+    // extract token from header
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7, authHeader.length) : authHeader;
+
 
     try{
         // Verify the token
@@ -16,7 +19,7 @@ module.exports = function(req, res, next){
         req.user = verify
         next()
     } catch (err) {
-        return res.status(401).send('Denied access: token not valid')
+        return res.status(401).json({message: 'Denied access: Invalid token'})
     }
 
 }

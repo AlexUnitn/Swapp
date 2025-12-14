@@ -5,6 +5,7 @@ const userRouter = require('./routes/userRoutes')
 const itemRouter = require('./routes/itemRoutes')
 const reportRouter = require('./routes/reportRoutes')
 const bookingRouter = require('./routes/bookingRoutes')
+const authRouter = require('./routes/authRoutes')
 
 const connectDB = require('./db')
 
@@ -13,6 +14,7 @@ const app = express()
 app.use(express.json())
 
 connectDB()
+app.use('/api/auth', authRouter)
 app.use('/api/users', userRouter)
 app.use('/api/item', itemRouter)
 app.use('/api/report', reportRouter)
