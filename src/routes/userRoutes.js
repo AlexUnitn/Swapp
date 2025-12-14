@@ -4,8 +4,6 @@ const userController = require('../controllers/userController')
 
 // GET api/users
 router.get('/', userController.getUser)
-// POST api/users
-router.post('/', userController.createUser)
 // PUT api/users/:id
 router.put('/:id', userController.updateUser)
 // GET api/users/:id

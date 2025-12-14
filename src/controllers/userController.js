@@ -39,28 +39,6 @@ async function getUserById(req, res){
     }
 }
 
-// create a user
-async function createUser(req,res){
-    try{
-        // TODO: hashare la password
-        const user = await userModel.create(req.body)
-        if (!user) {
-            return res.status(400).json({message: 'User not created'})
-        }
-        
-        return res.status(201).json({message: 'User created'})
-    } catch (err){
-        // controlla quale campo è duplicato e lo segnala
-        if (err.code === 11000) {
-            const field = Object.keys(err.keyPattern)[0];
-            return res.status(400).json({ 
-                message: `${field} is already registered`
-            });
-        }
-        return res.status(500).json({message: err.message})
-    }
-}
-
 //modify a user by ID 
 async function updateUser(req,res){
     try{
