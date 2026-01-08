@@ -35,5 +35,8 @@ const ItemSchema = new Schema({
 
 }, { timestamps: true });
 
+// create text index for search
+ItemSchema.index({title:'text', description:'text'})
+
 const Item = mongoose.model('Item', ItemSchema);
 module.exports = Item
