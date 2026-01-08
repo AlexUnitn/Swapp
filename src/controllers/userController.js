@@ -70,7 +70,6 @@ async function deleteUser(req,res){
 
 module.exports = {
     getUser,
-    createUser,
     updateUser,
     getUserById,
     deleteUser
