@@ -19,7 +19,16 @@
       </svg>
       <input type="text" placeholder="Cerca oggetti..." aria-label="Cerca oggetti" />
     </div>
-    <button class="filter-btn" aria-label="Filtri">Filtri</button>
+    <div style="position:relative;">
+        <button id="filterBtn" class="filter-btn" aria-label="Filtri">Filtri</button>
+        <div id="filterDropdown" class="filter-dropdown hidden">
+            <div class="filter-item" data-value="">Tutte le categorie</div>
+            <div class="filter-item" data-value="electronics">Elettronica</div>
+            <div class="filter-item" data-value="clothing">Abbigliamento</div>
+            <div class="filter-item" data-value="books">Libri</div>
+            <div class="filter-item" data-value="home">Casa e Giardino</div>
+        </div>
+    </div>
   </div>
 
   <main class="container" role="main" aria-label="Elenco oggetti">
@@ -33,6 +42,37 @@
     document.addEventListener('DOMContentLoaded', async () => {
         const resultsContainer = document.getElementById('results-grid');
         const searchInput = document.querySelector('input[type="text"]');
+        const filterBtn = document.getElementById('filterBtn');
+        const filterDropdown = document.getElementById('filterDropdown');
+        
+        // Toggle dropdown
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+                filterDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle category selection
+        document.querySelectorAll('.filter-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const category = item.dataset.value;
+                const currentParams = new URLSearchParams(window.location.search);
+                
+                if (category) {
+                    currentParams.set('cat', category);
+                } else {
+                    currentParams.delete('cat');
+                }
+                
+                window.location.search = currentParams.toString();
+            });
+        });
         
         // Leggi la query dall'URL
         const params = new URLSearchParams(window.location.search);
