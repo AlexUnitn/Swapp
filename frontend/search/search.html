@@ -111,10 +111,7 @@
         
         // Paginazione
         const currentPage = parseInt(params.get('page')) || 1;
-        const limit = 10; // oggetti per pagina
-        // Nota: Il backend attuale non supporta ancora limit/offset nativamente, 
-        // quindi faremo una paginazione client-side per ora, oppure modifichiamo il backend.
-        // Per semplicità e rapidità, implementiamo paginazione client-side (fetch all -> slice)
+        const limit = 8; // oggetti per pagina
         
         const apiUrl = `/api/item?${apiParams.toString()}`;
 
