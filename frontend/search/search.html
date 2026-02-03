@@ -33,8 +33,15 @@
 
   <main class="container" role="main" aria-label="Elenco oggetti">
     <!-- Contenitore unico per i risultati dinamici -->
-    <div id="results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; width: 100%;">
+    <div id="results-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;">
         <p>Caricamento risultati...</p>
+    </div>
+    
+    <!-- Paginazione -->
+    <div id="pagination" class="pagination-container" style="display:none; margin-top:30px; justify-content:center; gap:10px;">
+        <button id="prevBtn" class="page-btn">← Precedente</button>
+        <span id="pageInfo" style="display:flex; align-items:center; font-weight:600;">Pagina 1</span>
+        <button id="nextBtn" class="page-btn">Successiva →</button>
     </div>
   </main>
 
@@ -101,20 +108,64 @@
         const apiParams = new URLSearchParams();
         if (query) apiParams.set('search', query);
         if (category) apiParams.set('category', category);
-
-        // Se non ci sono filtri, chiama l'API per tutti gli oggetti
+        
+        // Paginazione
+        const currentPage = parseInt(params.get('page')) || 1;
+        const limit = 10; // oggetti per pagina
+        // Nota: Il backend attuale non supporta ancora limit/offset nativamente, 
+        // quindi faremo una paginazione client-side per ora, oppure modifichiamo il backend.
+        // Per semplicità e rapidità, implementiamo paginazione client-side (fetch all -> slice)
+        
         const apiUrl = `/api/item?${apiParams.toString()}`;
 
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error('Errore nel caricamento');
-            const items = await response.json();
+            const allItems = await response.json();
             
-            renderItems(items);
+            // Calcola paginazione
+            const totalItems = allItems.length;
+            const totalPages = Math.ceil(totalItems / limit);
+            const startIndex = (currentPage - 1) * limit;
+            const endIndex = startIndex + limit;
+            const itemsToShow = allItems.slice(startIndex, endIndex);
+            
+            renderItems(itemsToShow);
+            setupPagination(currentPage, totalPages);
+            
         } catch (error) {
             console.error(error);
             resultsContainer.innerHTML = '<p style="padding:20px">Si è verificato un errore nel caricamento degli oggetti. Assicurati che il server sia attivo.</p>';
         }
+
+        function setupPagination(current, total) {
+            const paginationDiv = document.getElementById('pagination');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            if (total <= 1) {
+                paginationDiv.style.display = 'none';
+                return;
+            }
+            
+            paginationDiv.style.display = 'flex';
+            pageInfo.textContent = `Pagina ${current} di ${total}`;
+            
+            prevBtn.disabled = current === 1;
+            nextBtn.disabled = current === total;
+            
+            prevBtn.onclick = () => changePage(current - 1);
+            nextBtn.onclick = () => changePage(current + 1);
+            
+            function changePage(newPage) {
+                if (newPage < 1 || newPage > total) return;
+                const currentParams = new URLSearchParams(window.location.search);
+                currentParams.set('page', newPage);
+                window.location.search = currentParams.toString();
+            }
+        }
+
 
         // Funzione per creare le card HTML
         function renderItems(items) {

@@ -86,12 +86,29 @@
     color: #2563eb; 
   }
 
-  /* Main layout */
+  /* Pagination */
+  .page-btn {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .page-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #f0f7ff;
+  }
+  .page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .container{
     max-width:1100px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
+    margin:0 auto; 
+    width: 100%; 
     gap:20px;
   }
 
@@ -105,13 +122,15 @@
   /* Card */
   .card{
     display:flex;
-    gap:14px;
+    /* Aumentiamo il gap e il padding per rendere la card più grande */
+    gap:20px;
     align-items:center;
     background:var(--card);
     border-radius:var(--radius);
-    padding:14px;
+    padding:24px;
     box-shadow:var(--shadow);
     transition:transform .18s ease, box-shadow .18s ease;
+    height: 100%; /* Forza altezza uniforme */
   }
   .card:hover{
     transform:translateY(-6px);
@@ -119,8 +138,9 @@
   }
 
   .thumb{
-    flex:0 0 96px;
-    height:64px;
+    /* Aumentiamo la dimensione dell'immagine */
+    flex:0 0 140px;
+    height:100px;
     border-radius:10px;
     background:linear-gradient(135deg,#e6eefc,#f8fbff);
     display:flex;
