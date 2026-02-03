@@ -22,6 +22,8 @@ app.use('/api/item', itemRouter)
 app.use('/api/report', reportRouter)
 app.use('/api/booking', bookingRouter)
 
+app.use(express.static(path.join(__dirname, '../frontend')))
+// Servire 'main' come root
 app.use(express.static(path.join(__dirname, '../frontend/main')))
 
 // rotta di fallback per tutte le altre richieste
