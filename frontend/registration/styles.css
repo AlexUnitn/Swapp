@@ -60,7 +60,11 @@ input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
-input:invalid:not(:focus) { border-color: var(--error); }
+
+.error-border {
+  border-color: var(--error) !important;
+  background-color: #fef2f2; /* Leggero sfondo rosso */
+}
 
 .btn {
   grid-column: 1 / -1;     /* bottone su tutta la larghezza */
