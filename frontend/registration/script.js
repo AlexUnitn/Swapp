@@ -19,34 +19,67 @@ function closeRequiredModal() {
 }
 
 // gestione invio
-document.getElementById('regForm').addEventListener('submit', function (e) {
+const FORM_FIELDS = [
+  { id: 'nome',     key: 'firstName',   label: 'Nome' },
+  { id: 'cognome',  key: 'lastName',    label: 'Cognome' },
+  { id: 'indirizzo',key: 'address',     label: 'Indirizzo' },
+  { id: 'cf',       key: 'fiscalCode',  label: 'Codice Fiscale' },
+  { id: 'username', key: 'username',    label: 'Username' },
+  { id: 'email',    key: 'email',       label: 'Email' },
+  { id: 'password', key: 'password',    label: 'Password' },
+  { id: 'telefono', key: 'phoneNumber', label: 'Telefono' }
+];
+
+document.getElementById('regForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
-  const fields = [
-    { id: 'nome',     label: 'Nome' },
-    { id: 'cognome',  label: 'Cognome' },
-	{ id: 'indirizzo', label: 'Indirizzo'},
-    { id: 'cf',       label: 'Codice Fiscale' },
-    { id: 'username', label: 'Username' },
-    { id: 'email',    label: 'Email' },
-    { id: 'password', label: 'Password' },
-    { id: 'telefono', label: 'Telefono' }
-  ];
+  const payload = {};
+  let hasErrors = false;
 
-  const missing = fields
-    .map(f => ({ ...f, value: document.getElementById(f.id).value.trim() }))
-    .filter(f => !f.value)
-    .map(f => f.label);
+  // Reset errori precedenti
+  FORM_FIELDS.forEach(field => {
+    document.getElementById(field.id).classList.remove('error-border');
+  });
 
-  if (missing.length) {
-    showRequiredModal(missing);
+  // Raccolta dati e validazione campi vuoti
+  FORM_FIELDS.forEach(field => {
+    const element = document.getElementById(field.id);
+    const value = element.value.trim();
+    
+    if (!value) {
+      element.classList.add('error-border');
+      hasErrors = true;
+    }
+    payload[field.key] = value;
+  });
+
+  if (hasErrors) {
+    return; 
+  }
+
+  // Validazione CF
+  if (!validaCF(payload.fiscalCode.toUpperCase())) {
+    const cfInput = document.getElementById('cf');
+    cfInput.classList.add('error-border');
     return;
   }
 
-  if (!validaCF(document.getElementById('cf').value.toUpperCase())) {
-    alert('Codice Fiscale non valido');
-    return;
-  }
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-  alert('Registrazione completata (simulata)');
+    const result = await response.json();
+
+    if (response.ok) {
+      window.location.href = 'successful.html';
+    } else {
+      alert('Errore: ' + result.message);
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Impossibile contattare il server.');
+  }
 });

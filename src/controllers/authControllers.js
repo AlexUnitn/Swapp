@@ -6,10 +6,9 @@ const validate = require('../utils/validation')
 // register new user
 async function register(req, res){
     try {
-
         // validate request body
         const {firstName,lastName, username, email, phoneNumber, password} = req.body
-        if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim() || !phoneNumber.trim() || !password.trim()) {
+        if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !email?.trim() || !phoneNumber?.trim() || !password?.trim()) {
             return res.status(400).json({message: 'All fields are required'})
         }
 
