@@ -50,7 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	userIconLink.addEventListener('click', e => {
     e.preventDefault(); // stop the instant jump
-    const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+    // Verifica se esiste un token di autenticazione
+    const isLoggedIn = !!localStorage.getItem('token');
+    
     location.href = isLoggedIn
     	? '../account/account.html'
     	: '../login/login.html';
