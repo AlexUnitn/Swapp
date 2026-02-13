@@ -177,6 +177,8 @@
                 // Crea l'elemento card
                 const card = document.createElement('article');
                 card.className = 'card';
+                card.style.cursor = 'pointer';
+                card.onclick = () => window.location.href = `../itemdetails/index.html?id=${item._id}`;
                 
                 // Determina lo stato e il colore
                 const isAvailable = item.status === 'available';
