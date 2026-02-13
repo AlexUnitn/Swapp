@@ -44,7 +44,20 @@ input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
-input:invalid:not(:focus) { border-color: var(--error); }
+
+/* Classe per evidenziare campi mancanti via JS */
+.error-border {
+  border-color: var(--error) !important;
+  background-color: #fef2f2;
+}
+
+.error-message {
+  color: var(--error);
+  font-size: 13px;
+  margin-top: 6px;
+  min-height: 18px; /* Riserva spazio per evitare scatti improvvisi del layout */
+}
+
 .btn {
   width: 100%;
   padding: 12px;
