@@ -8,14 +8,15 @@ const itemRouter = require('./routes/itemRoutes')
 const reportRouter = require('./routes/reportRoutes')
 const bookingRouter = require('./routes/bookingRoutes')
 const authRouter = require('./routes/authRoutes')
+const cors = require('cors')
+const path = require('path')
 
 const connectDB = require('./db')
 
 
 const app = express()
 app.use(express.json())
-app.use(cors()) // Abilita CORS
-
+app.use(cors())
 connectDB()
 
 // API Routes
@@ -25,12 +26,13 @@ app.use('/api/item', itemRouter)
 app.use('/api/report', reportRouter)
 app.use('/api/booking', bookingRouter)
 
-// Servire i file statici del Frontend
+app.use(express.static(path.join(__dirname, '../frontend')))
+// Servire 'main' come root
 app.use(express.static(path.join(__dirname, '../frontend/main')))
 
-// Rotta di fallback: per qualsiasi altra richiesta, restituisci la homepage
+// rotta di fallback per tutte le altre richieste
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/main/index.html'))
+    res.sendFile(path.join(__dirname, '../frontend/errore/404.html'))
 })
 
 app.listen(3000, () => {

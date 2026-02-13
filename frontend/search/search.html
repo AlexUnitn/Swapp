@@ -19,13 +19,29 @@
       </svg>
       <input type="text" placeholder="Cerca oggetti..." aria-label="Cerca oggetti" />
     </div>
-    <button class="filter-btn" aria-label="Filtri">Filtri</button>
+    <div style="position:relative;">
+        <button id="filterBtn" class="filter-btn" aria-label="Filtri">Filtri</button>
+        <div id="filterDropdown" class="filter-dropdown hidden">
+            <div class="filter-item" data-value="">Tutte le categorie</div>
+            <div class="filter-item" data-value="electronics">Elettronica</div>
+            <div class="filter-item" data-value="clothing">Abbigliamento</div>
+            <div class="filter-item" data-value="books">Libri</div>
+            <div class="filter-item" data-value="home">Casa e Giardino</div>
+        </div>
+    </div>
   </div>
 
   <main class="container" role="main" aria-label="Elenco oggetti">
     <!-- Contenitore unico per i risultati dinamici -->
-    <div id="results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; width: 100%;">
+    <div id="results-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;">
         <p>Caricamento risultati...</p>
+    </div>
+    
+    <!-- Paginazione -->
+    <div id="pagination" class="pagination-container" style="display:none; margin-top:30px; justify-content:center; gap:10px;">
+        <button id="prevBtn" class="page-btn">← Precedente</button>
+        <span id="pageInfo" style="display:flex; align-items:center; font-weight:600;">Pagina 1</span>
+        <button id="nextBtn" class="page-btn">Successiva →</button>
     </div>
   </main>
 
@@ -33,29 +49,120 @@
     document.addEventListener('DOMContentLoaded', async () => {
         const resultsContainer = document.getElementById('results-grid');
         const searchInput = document.querySelector('input[type="text"]');
+        const filterBtn = document.getElementById('filterBtn');
+        const filterDropdown = document.getElementById('filterDropdown');
         
-        // 1. Leggi la query dall'URL
+        // Toggle dropdown
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filterDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+                filterDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle category selection
+        document.querySelectorAll('.filter-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const category = item.dataset.value;
+                const currentParams = new URLSearchParams(window.location.search);
+                
+                if (category) {
+                    currentParams.set('cat', category);
+                } else {
+                    currentParams.delete('cat');
+                }
+                
+                window.location.search = currentParams.toString();
+            });
+        });
+        
+        // Leggi la query dall'URL
         const params = new URLSearchParams(window.location.search);
-        const query = params.get('q');
+        const query = params.get('q') || params.get('search');
+        const category = params.get('cat') || params.get('category');
         
         // Imposta il valore nell'input se presente
         if (query) searchInput.value = query;
 
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = searchInput.value.trim();
+                const currentParams = new URLSearchParams(window.location.search);
+                
+                if (val) {
+                    currentParams.set('q', val);
+                } else {
+                    currentParams.delete('q');
+                }
+                
+                window.location.search = currentParams.toString();
+            }
+        });
+
         // 2. Chiama il Backend
-        const apiUrl = query 
-            ? `http://localhost:3000/api/item?search=${encodeURIComponent(query)}`
-            : `http://localhost:3000/api/item`;
+        const apiParams = new URLSearchParams();
+        if (query) apiParams.set('search', query);
+        if (category) apiParams.set('category', category);
+        
+        // Paginazione
+        const currentPage = parseInt(params.get('page')) || 1;
+        const limit = 8; // oggetti per pagina
+        
+        const apiUrl = `/api/item?${apiParams.toString()}`;
 
         try {
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error('Errore nel caricamento');
-            const items = await response.json();
+            const allItems = await response.json();
             
-            renderItems(items);
+            // Calcola paginazione
+            const totalItems = allItems.length;
+            const totalPages = Math.ceil(totalItems / limit);
+            const startIndex = (currentPage - 1) * limit;
+            const endIndex = startIndex + limit;
+            const itemsToShow = allItems.slice(startIndex, endIndex);
+            
+            renderItems(itemsToShow);
+            setupPagination(currentPage, totalPages);
+            
         } catch (error) {
             console.error(error);
-            resultsContainer.innerHTML = '<p style="padding:20px">Si è verificato un errore nel caricamento degli oggetti.</p>';
+            resultsContainer.innerHTML = '<p style="padding:20px">Si è verificato un errore nel caricamento degli oggetti. Assicurati che il server sia attivo.</p>';
         }
+
+        function setupPagination(current, total) {
+            const paginationDiv = document.getElementById('pagination');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            if (total <= 1) {
+                paginationDiv.style.display = 'none';
+                return;
+            }
+            
+            paginationDiv.style.display = 'flex';
+            pageInfo.textContent = `Pagina ${current} di ${total}`;
+            
+            prevBtn.disabled = current === 1;
+            nextBtn.disabled = current === total;
+            
+            prevBtn.onclick = () => changePage(current - 1);
+            nextBtn.onclick = () => changePage(current + 1);
+            
+            function changePage(newPage) {
+                if (newPage < 1 || newPage > total) return;
+                const currentParams = new URLSearchParams(window.location.search);
+                currentParams.set('page', newPage);
+                window.location.search = currentParams.toString();
+            }
+        }
+
 
         // Funzione per creare le card HTML
         function renderItems(items) {
@@ -77,8 +184,9 @@
                 const statusText = isAvailable ? 'Prenotabile' : 'Non prenotabile';
                 
                 // Immagine placeholder o reale se presente
-                const imageSrc = (item.images && item.images.length > 0) 
-                    ? item.images[0] // Assumiamo sia un URL o base64
+                // Se item.images[0] esiste ed è base64 o url usalo, altrimenti placeholder
+                const imageSrc = (item.images && item.images.length > 0 && item.images[0].data) 
+                    ? item.images[0].data 
                     : `https://placehold.co/400x300?text=${encodeURIComponent(item.title)}`;
 
                 card.innerHTML = `
@@ -104,7 +212,7 @@
                             </div>
                             <div class="subtitle">${item.category || 'Generico'}</div>
                         </div>
-                        <p style="font-size:0.9rem; color:#666; margin-top:8px;">${item.description}</p>
+                        <p style="font-size:0.9rem; color:#666; margin-top:8px;">${item.description ? item.description.substring(0, 100) + '...' : ''}</p>
                     </div>
                 `;
                 
@@ -113,6 +221,5 @@
         }
     });
   </script>
-
 </body>
 </html>
