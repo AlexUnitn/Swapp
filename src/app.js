@@ -8,8 +8,6 @@ const itemRouter = require('./routes/itemRoutes')
 const reportRouter = require('./routes/reportRoutes')
 const bookingRouter = require('./routes/bookingRoutes')
 const authRouter = require('./routes/authRoutes')
-const cors = require('cors')
-const path = require('path')
 
 const connectDB = require('./db')
 
