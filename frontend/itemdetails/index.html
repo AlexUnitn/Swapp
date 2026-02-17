@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swapp - Dettaglio Oggetto</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../main/index.html" style="text-decoration: none; color: inherit;">
+                <h1>SWAPP</h1>
+            </a>
+        </div>
+        <div class="user-icon">
+            <a id="userIconLink" href="#">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="back-link">
+            <a href="../main/index.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Torna alla ricerca
+            </a>
+        </div>
+
+        <div class="item-details-card" id="itemDetails">
+            <div class="loading">Caricamento in corso...</div>
+            <!-- Content will be injected by JS -->
+        </div>
+    </div>
+</body>
+</html>
