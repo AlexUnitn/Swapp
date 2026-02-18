@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Area Personale</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
 	<div class="top-left-back">
@@ -17,26 +18,29 @@
 		<h1 class="title">Area Personale</h1>
 
 		<nav class="menu">
-		<a href="#" class="menu-item">
-			<span class="icon">&#128218;</span>
-			<span class="text">Prestiti</span>
-		</a>
+			<a href="#" id="loansLink" class="menu-item">
+				<span class="icon">&#128218;</span>
+				<span class="text">Prestiti</span>
+			</a>
 
-		<a href="../chats/chats.html" class="menu-item">
-			<span class="icon">&#128172;</span>
-			<span class="text">Chat</span>
-		</a>
+			<a href="../chats/chats.html" id="chatLink" class="menu-item">
+				<span class="icon">&#128172;</span>
+				<span class="text">Chat</span>
+			</a>
 
-		<a href="#" class="menu-item">
-			<span class="icon">&#9888;</span>
-			<span class="text">Area Segnalazione</span>
-		</a>
+			<a href="#" id="reportLink" class="menu-item">
+				<span class="icon">&#9888;</span>
+				<span class="text">Area Segnalazione</span>
+			</a>
 
-		<a href="../accountsettings/settings.html" class="menu-item">
-			<span class="icon">&#9881;</span>
-			<span class="text">Impostazioni account</span>
-		</a>
+			<a href="../accountsettings/settings.html" id="settingsLink" class="menu-item">
+				<span class="icon">&#9881;</span>
+				<span class="text">Impostazioni account</span>
+			</a>
 		</nav>
+
+		<!-- modal / results mount point -->
+		<div id="modal-root"></div>
 
 	</div>
 
