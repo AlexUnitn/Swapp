@@ -4,6 +4,8 @@ const request = require('supertest')
 const app = require('../../app')
 const User = require('../../models/User')
 const Item = require('../../models/Item')
+const { generateCF } = require('../../utils/validation')
+const { createToken } = require('../../utils/authUtils')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 let createdUserIds = []
@@ -16,6 +18,7 @@ const createUser = async () => {
         username: `item_${baseId}_${Math.random().toString(36).slice(2, 8)}`,
         email: `item_${baseId}_${Math.random().toString(36).slice(2, 8)}@example.com`,
         phoneNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        fiscalCode: generateCF(),
         password: 'Password123!'
     })
     createdUserIds.push(user._id)
@@ -58,17 +61,22 @@ describe('Item API', () => {
     describe('PUT /api/item/:id', () => {
         test('deve aggiornare un oggetto', async () => {
             const user = await createUser()
+            const token = createToken(user)
             const item = await createItem(user._id)
             const response = await request(app)
                 .put(`/api/item/${item._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({ title: `Aggiornato ${baseId}` })
             expect(response.status).toBe(200)
             expect(response.body.message).toBe('Item updated')
         })
 
         test('deve restituire errore per id non valido', async () => {
+            const user = await createUser()
+            const token = createToken(user)
             const response = await request(app)
                 .put('/api/item/000000000000000000000000')
+                .set('Authorization', `Bearer ${token}`)
                 .send({ title: `Aggiornato ${baseId}` })
             expect(response.status).toBe(404)
             expect(response.body.message).toBe('Item not found')

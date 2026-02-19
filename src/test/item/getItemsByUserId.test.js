@@ -4,6 +4,8 @@ const request = require('supertest')
 const app = require('../../app')
 const User = require('../../models/User')
 const Item = require('../../models/Item')
+const { generateCF } = require('../../utils/validation')
+const { createToken } = require('../../utils/authUtils')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 let createdUserIds = []
@@ -16,6 +18,7 @@ const createUser = async () => {
         username: `item_${baseId}_${Math.random().toString(36).slice(2, 8)}`,
         email: `item_${baseId}_${Math.random().toString(36).slice(2, 8)}@example.com`,
         phoneNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        fiscalCode: generateCF(),
         password: 'Password123!'
     })
     createdUserIds.push(user._id)
@@ -58,8 +61,10 @@ describe('Item API', () => {
     describe('GET /api/item/user/:userId', () => {
         test('deve restituire gli oggetti per utente', async () => {
             const user = await createUser()
+            const token = createToken(user)
             await createItem(user._id)
             const response = await request(app).get(`/api/item/user/${user._id}`)
+                .set('Authorization', `Bearer ${token}`)
             expect(response.status).toBe(200)
             expect(Array.isArray(response.body)).toBe(true)
         })

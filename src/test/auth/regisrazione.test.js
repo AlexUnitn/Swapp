@@ -2,18 +2,12 @@ require('dotenv').config()
 const mongoose = require('mongoose')
 const request = require('supertest')
 const app = require('../../app')
+const { generateCF } = require('../../utils/validation')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 const baseEmail = `test_${baseId}@example.com`
 const basePhone = `${Math.floor(1000000000 + Math.random() * 9000000000)}`
 const basePassword = 'Password123!'
-// Simple CF generator: 6 letters + 2 digits + 1 letter + 2 digits + 1 letter + 3 digits + 1 letter
-const generateCF = () => {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const digits = '0123456789';
-    const rand = (str, len) => Array(len).fill(0).map(() => str[Math.floor(Math.random() * str.length)]).join('');
-    return rand(letters, 6) + rand(digits, 2) + rand(letters, 1) + rand(digits, 2) + rand(letters, 1) + rand(digits, 3) + rand(letters, 1);
-}
 const baseCF = generateCF();
 
 beforeAll(async () => {

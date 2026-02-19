@@ -4,18 +4,11 @@ const request = require('supertest')
 const bcrypt = require('bcryptjs')
 const app = require('../../app')
 const User = require('../../models/User')
+const { generateCF } = require('../../utils/validation')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 const basePassword = 'Password123!'
 let createdUserIds = []
-
-// Simple CF generator
-const generateCF = () => {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const digits = '0123456789';
-    const rand = (str, len) => Array(len).fill(0).map(() => str[Math.floor(Math.random() * str.length)]).join('');
-    return rand(letters, 6) + rand(digits, 2) + rand(letters, 1) + rand(digits, 2) + rand(letters, 1) + rand(digits, 3) + rand(letters, 1);
-}
 
 const createUser = async (overrides = {}) => {
     const password = await bcrypt.hash(basePassword, 10)
