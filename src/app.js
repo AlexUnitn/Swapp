@@ -8,6 +8,7 @@ const itemRouter = require('./routes/itemRoutes')
 const reportRouter = require('./routes/reportRoutes')
 const bookingRouter = require('./routes/bookingRoutes')
 const authRouter = require('./routes/authRoutes')
+const messageRouter = require('./routes/messageRoutes')
 
 const connectDB = require('./db')
 
@@ -23,6 +24,16 @@ app.use('/api/users', userRouter)
 app.use('/api/item', itemRouter)
 app.use('/api/report', reportRouter)
 app.use('/api/booking', bookingRouter)
+app.use('/api/messages', messageRouter)
+
+app.use(express.static(path.join(__dirname, '../frontend')))
+// Servire 'main' come root
+app.use(express.static(path.join(__dirname, '../frontend/main')))
+
+// rotta di fallback per tutte le altre richieste
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/errore/404.html'))
+})
 
 app.use(express.static(path.join(__dirname, '../frontend')))
 // Servire 'main' come root
