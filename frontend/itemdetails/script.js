@@ -85,7 +85,7 @@ function renderItem(item) {
                 ${item.description ? item.description.replace(/\n/g, '<br>') : 'Nessuna descrizione disponibile.'}
             </div>
 
-            <button class="action-btn" onclick="contactOwner('${item.userId}')">Contatta Proprietario</button>
+            <button class="action-btn" onclick="contactOwner('${item.userId}', '${item._id}')">Contatta Proprietario</button>
         </div>
     `;
 
@@ -111,18 +111,16 @@ function showError(msg) {
     if(container) container.innerHTML = `<div class="error-msg">${msg}</div>`;
 }
 
-async function contactOwner(userId) {
+async function contactOwner(userId, itemId) {
     const token = localStorage.getItem('token');
     if (!token) {
-        // Salva l'URL corrente per tornarci dopo il login (opzionale)
         alert('Devi effettuare il login per contattare il proprietario.');
         window.location.href = '../login/login.html';
         return;
     }
     
-    // Qui si potrebbe reindirizzare alla chat
-    alert(`Funzionalità chat in arrivo! Proprietario ID: ${userId}`);
-    // window.location.href = `../chats/chats.html?contact=${userId}`;
+    // Redirect to chat with contact and item params
+    window.location.href = `../chats/chats.html?contact=${userId}&item=${itemId}`;
 }
 
 // Esporta funzioni globali

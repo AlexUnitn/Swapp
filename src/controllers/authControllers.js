@@ -82,15 +82,20 @@ async function login(req, res){
         }
 
         // check request body has at least one identifier
-        if (!email?.trim() && !username?.trim() && !phoneNumber?.trim()) {
+        const identifier = email?.trim() || username?.trim() || phoneNumber?.trim();
+
+        if (!identifier) {
             return res.status(400).json({message: 'Email, username or phone number is required'})
         }
 
-        // Build query dynamically based on provided fields
-        const query = {};
-        if (email?.trim()) query.email = email.trim();
-        else if (username?.trim()) query.username = username.trim();
-        else if (phoneNumber?.trim()) query.phoneNumber = phoneNumber.trim();
+        // Build query to search in all identifier fields
+        const query = {
+            $or: [
+                { email: identifier },
+                { username: identifier },
+                { phoneNumber: identifier }
+            ]
+        };
 
         // check the user exists
         const existingUser = await userModel.findOne(query)

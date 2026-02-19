@@ -72,5 +72,29 @@ describe('Auth API', () => {
             expect(response.status).toBe(400)
             expect(response.body.message).toBe('Password is required')
         })
+
+        test('deve effettuare il login con username valido', async () => {
+            const user = await createUser()
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    username: user.username,
+                    password: basePassword
+                })
+            expect(response.status).toBe(200)
+            expect(response.body).toHaveProperty('token')
+        })
+
+        test('deve effettuare il login con email passata nel campo username (simulazione frontend)', async () => {
+            const user = await createUser()
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    username: user.email, // simulates frontend behavior
+                    password: basePassword
+                })
+            expect(response.status).toBe(200)
+            expect(response.body).toHaveProperty('token')
+        })
     })
 })

@@ -28,8 +28,8 @@ function renderConvList(list) {
 }
 
 async function initConversations() {
-  const loggedIn = localStorage.getItem('loggedIn') === 'true';
-  if (!loggedIn) {
+  const token = localStorage.getItem('token');
+  if (!token) {
     location.href = '../login/login.html';
     return;
   }
@@ -41,16 +41,18 @@ async function initConversations() {
   try { messagesStore = JSON.parse(localStorage.getItem('messages') || '{}'); } catch(e){ messagesStore = {}; }
 
   // fetch bookings where user is borrower
-  const borrowerRes = await fetch(`/api/booking/user/${userId}`);
+  const headers = { 'Authorization': `Bearer ${token}` };
+  const borrowerRes = await fetch(`/api/booking/user/${userId}`, { headers });
   const borrowerBookings = borrowerRes.ok ? await borrowerRes.json() : [];
 
   // fetch items owned by user
-  const myItemsRes = await fetch(`/api/item/user/${userId}`);
+  // Items API might be public or protected, better to send token if we have it
+  const myItemsRes = await fetch(`/api/item/user/${userId}`, { headers });
   const myItems = myItemsRes.ok ? await myItemsRes.json() : [];
   const myItemIds = myItems.map(i => i._id || i.id);
 
   // fetch all bookings to find those referencing my items
-  const allBookingsRes = await fetch('/api/booking');
+  const allBookingsRes = await fetch('/api/booking', { headers });
   const allBookings = allBookingsRes.ok ? await allBookingsRes.json() : [];
 
   const ownerBookings = allBookings.filter(b => myItemIds.includes((b.item && (b.item._id || b.item)) || b.item));
@@ -62,7 +64,7 @@ async function initConversations() {
     const key = convKey(counterpartId, itemId);
     if (convMap.has(key)) return;
     // fetch user info
-    const uRes = await fetch(`/api/users/${counterpartId}`);
+    const uRes = await fetch(`/api/users/${counterpartId}`, { headers });
     const user = uRes.ok ? await uRes.json() : { username: 'User' };
     const avatar = `https://i.pravatar.cc/150?u=${counterpartId}`;
     // attempt to get last message/time from store
@@ -97,9 +99,25 @@ async function initConversations() {
     await ensureConv(borrowerId, itemId);
   }
 
+  // check for contact/item params in URL to start a new conversation
+  const params = new URLSearchParams(window.location.search);
+  const contactId = params.get('contact');
+  const paramItemId = params.get('item');
+
+  if (contactId) {
+    // ensure conversation exists (create if new)
+    await ensureConv(contactId, paramItemId);
+  }
+
   convs = Array.from(convMap.values());
   renderConvList(convs);
-  if (convs.length) openConversation(convs[0].key);
+
+  if (contactId) {
+      const targetKey = convKey(contactId, paramItemId);
+      openConversation(targetKey);
+  } else if (convs.length) {
+      openConversation(convs[0].key);
+  }
 }
 
 initConversations().catch(err => console.error(err));
@@ -178,7 +196,9 @@ async function openConversation(key) {
   messagesDiv.innerHTML = '';
   let msgs = [];
   try {
-    const res = await fetch(`/api/messages/conversation/${encodeURIComponent(key)}`);
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    const res = await fetch(`/api/messages/conversation/${encodeURIComponent(key)}`, { headers });
     if (res.ok) msgs = await res.json();
   } catch (e) { /* ignore */ }
 
@@ -226,7 +246,16 @@ composeForm.addEventListener('submit', async e => {
 
   // try to POST to server endpoint if available
   try {
-    await fetch('/api/messages', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({conversation: activeConvKey, message: msg}) });
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type':'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+    await fetch('/api/messages', { 
+      method: 'POST', 
+      headers, 
+      body: JSON.stringify({conversation: activeConvKey, message: msg}) 
+    });
   } catch (e) { /* ignore */ }
 
   // persist locally
