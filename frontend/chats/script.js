@@ -148,7 +148,7 @@ async function openConversation(key) {
 
         chatItemDiv.style.display = 'flex';
         chatItemDiv.style.alignItems = 'center';
-        const detailHref = `../itemdetails/item.html?id=${encodeURIComponent(conv.itemId)}`;
+        const detailHref = `../itemdetails/index.html?id=${encodeURIComponent(conv.itemId)}`;
         chatItemDiv.innerHTML = `
           <a href="${detailHref}" style="display:flex;align-items:center;text-decoration:none;color:inherit;width:100%">
             ${imgTag}
