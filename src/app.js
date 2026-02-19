@@ -16,7 +16,6 @@ const connectDB = require('./db')
 const app = express()
 app.use(express.json())
 app.use(cors())
-connectDB()
 
 // API Routes
 app.use('/api/auth', authRouter)
@@ -44,6 +43,12 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/errore/404.html'))
 })
 
-app.listen(3000, () => {
-    console.log('Server in ascolto sulla porta 3000')
-})
+module.exports = app
+
+if (require.main === module) {
+    connectDB().then(() => {
+        app.listen(3000, () => {
+            console.log('Server in ascolto sulla porta 3000')
+        })
+    })
+}
