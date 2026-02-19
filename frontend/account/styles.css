@@ -73,6 +73,18 @@ body{
   border-color:var(--accent);
 }
 
+.logout {
+    margin-top: 20px;
+    border-color: #fecaca;
+    color: #ef4444;
+}
+
+.logout:hover {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
 @media(max-width:450px){
   .container{ padding:10px; }
 }
@@ -98,5 +110,5 @@ body{
 }
 
 .home-btn:hover {
-  background: #006dd9;
+    background: #006bce;
 }

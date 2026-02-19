@@ -9,8 +9,8 @@ async function getItem(req, res){
 
         // if the user filter by category 
         if(category){
-            query.category = category
-        } 
+            query.category = { $regex: new RegExp(`^${category}$`, 'i') }
+        }
 
         let items;
         if (search) {

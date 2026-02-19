@@ -1,35 +1,69 @@
-// mostra il modale con l’elenco campi mancanti
-function showRequiredModal(list) {
-  const ul = document.getElementById('missingList');
-  ul.innerHTML = '';
-  list.forEach(txt => {
-    const li = document.createElement('li');
-    li.textContent = txt;
-    ul.appendChild(li);
-  });
-  document.getElementById('modalRequired').classList.add('show');
-}
-function closeRequiredModal() {
-  document.getElementById('modalRequired').classList.remove('show');
-}
+
+const FORM_FIELDS = [
+  { id: 'username', key: 'username',    label: 'Username' },
+  { id: 'password', key: 'password',    label: 'Password' }
+];
 
 // gestione invio
-document.getElementById('regForm').addEventListener('submit', function (e) {
+document.getElementById('regForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
-  const fields = [
-    { id: 'username', label: 'Username' },
-    { id: 'password', label: 'Password' }
-  ];
+  const payload = {};
+  let hasErrors = false;
 
-  const missing = fields
-    .map(f => ({ ...f, value: document.getElementById(f.id).value.trim() }))
-    .filter(f => !f.value)
-    .map(f => f.label);
+  const errorDiv = document.getElementById('loginError');
+  errorDiv.textContent = ''; // Pulisce errori precedenti
 
-  if (missing.length) {
-    showRequiredModal(missing);
-    return;
+  // Reset errori precedenti
+  FORM_FIELDS.forEach(field => {
+    document.getElementById(field.id).classList.remove('error-border');
+  });
+
+  // Raccolta dati e validazione campi vuoti
+  FORM_FIELDS.forEach(field => {
+    const element = document.getElementById(field.id);
+    const value = element.value.trim();
+    
+    if (!value) {
+      element.classList.add('error-border');
+      hasErrors = true;
+    }
+    payload[field.key] = value;
+  });
+
+  if (hasErrors) {
+    return; 
   }
-  alert('Login completato (simulata)');
+
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      // Salva token e dati utente nel localStorage
+      localStorage.setItem('token', result.token);
+      if(result.user) {
+        localStorage.setItem('user', JSON.stringify(result.user));
+      }
+
+      // Reindirizza alla pagina principale
+      window.location.href = '../main/index.html';
+    } else {
+      // Mostra errore nel div dedicato invece dell'alert
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.textContent = result.message || 'Credenziali non valide';
+      
+      // Colora anche il campo password di rosso per feedback visivo
+      document.getElementById('password').classList.add('error-border');
+      document.getElementById('username').classList.add('error-border');
+    }
+  } catch (error) {
+    console.error(error);
+    document.getElementById('loginError').textContent = 'Impossibile contattare il server.';
+  }
 });
