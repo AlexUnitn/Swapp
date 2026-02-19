@@ -25,7 +25,67 @@
 			<div id="emptyState" class="empty-state hidden">
 				<span class="icon">📭</span>
 				<p>Non hai ancora prestato nessun oggetto</p>
-				<a href="../main/index.html" class="btn-primary">Esplora oggetti</a>
+				<button id="showFormBtn" class="btn-primary">➕ Metti nuovo oggetto in prestito</button>
+			</div>
+			
+			<!-- Form per nuovo oggetto -->
+			<div id="newItemForm" class="new-item-form hidden">
+				<h3>📝 Nuovo Oggetto in Prestito</h3>
+				<form id="createItemForm">
+					<div class="form-group">
+						<label for="title">Titolo *</label>
+						<input type="text" id="title" name="title" minlength="5" maxlength="100" required placeholder="Es. Trapano Bosch Professional">
+					</div>
+					
+					<div class="form-group">
+						<label for="description">Descrizione *</label>
+						<textarea id="description" name="description" minlength="5" maxlength="2000" required placeholder="Descrivi l'oggetto, le sue condizioni, come funziona..."></textarea>
+					</div>
+					
+					<div class="form-row">
+						<div class="form-group">
+							<label for="category">Categoria *</label>
+							<select id="category" name="category" required>
+								<option value="">Seleziona...</option>
+								<option value="elettronica">Elettronica</option>
+								<option value="utensili">Utensili</option>
+								<option value="giardinaggio">Giardinaggio</option>
+								<option value="cucina">Cucina</option>
+								<option value="sport">Sport</option>
+								<option value="libri">Libri</option>
+								<option value="musica">Musica</option>
+								<option value="videogiochi">Videogiochi</option>
+								<option value="casa">Casa</option>
+								<option value="altro">Altro</option>
+							</select>
+						</div>
+						
+						<div class="form-group">
+							<label for="maxLoanDuration">Durata max (giorni)</label>
+							<input type="number" id="maxLoanDuration" name="maxLoanDuration" min="1" placeholder="Es. 7">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label>📍 Posizione *</label>
+						<div class="form-row">
+							<input type="text" id="city" name="city" required placeholder="Città">
+							<input type="text" id="address" name="address" required placeholder="Indirizzo">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="images">📷 Immagini (opzionale)</label>
+						<input type="file" id="images" name="images" accept="image/*" multiple>
+						<small>Puoi selezionare più immagini. La prima sarà quella principale.</small>
+						<div id="imagePreview" class="image-preview"></div>
+					</div>
+					
+					<div class="form-actions">
+						<button type="button" id="cancelBtn" class="btn-secondary">Annulla</button>
+						<button type="submit" class="btn-primary">✅ Crea Oggetto</button>
+					</div>
+				</form>
 			</div>
 		</div>
 	</div>
