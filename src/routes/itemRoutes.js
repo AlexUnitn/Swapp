@@ -14,6 +14,8 @@ router.get('/:id', itemController.getItemById)
 router.delete('/:id', itemController.deleteItem)
 // GET api/item/user/:userId
 router.get('/user/:userId', itemController.getItemsByUserId)
+// GET api/item/user/:recipientId
+router.get('/user/:recipientId', itemController.getItemsByRecipientId)
 
 
 module.exports = router

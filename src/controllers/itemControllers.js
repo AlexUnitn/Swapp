@@ -97,6 +97,19 @@ async function getItemsByUserId(req, res){
     }
 }
 
+async function getItemsByRecipientId(req, res){
+    try{
+        const items = await itemModel.find({recipientId: req.params.recipientId})
+        if (!items) {
+            return res.status(404).json({message: 'Items not found'})
+        }
+
+        return res.status(200).json(items)
+    } catch (err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
 module.exports = {
     getItem,
     createItem,

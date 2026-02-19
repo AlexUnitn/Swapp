@@ -7,7 +7,10 @@ const ItemSchema = new Schema({
   
   // Riferimento all'utente (Relazione)
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  
+
+  // Riferimento all'utente che ha preso in prestito
+  recipientId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
+
   category: { type: String, required: true },
   
   images: [{
