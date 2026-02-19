@@ -34,20 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (category)
 			params.set('cat', category);
 
-		try {
-			/*const res = await fetch(`http://localhost:3000/api/search?${params}`);
-			if (!res.ok)
-				throw new Error('Network error');
-			const data = await res.json();
-			const payload = encodeURIComponent(btoa(JSON.stringify(data)));*/
-			window.location.href = `../search/search.html`;
-			//temporary
-			window.location.href = `../search/search.html?data=${payload}`;
+		window.location.href = `/search/search.html?${params.toString()}`;
 
-		} catch (err) {
-			console.error(err);
-			alert('Impossibile contattare il server');
-		}
+		
 	}
 
 	/* ---------- search ---------- */
@@ -61,7 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	userIconLink.addEventListener('click', e => {
     e.preventDefault(); // stop the instant jump
-    const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
+    // Verifica se esiste un token di autenticazione
+    const isLoggedIn = !!localStorage.getItem('token');
+    
     location.href = isLoggedIn
     	? '../account/account.html'
     	: '../login/login.html';
