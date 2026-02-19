@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const messageController = require('../controllers/messageController')  // Fixed typo: messageControllers -> messageController
+const messageController = require('../controllers/messageControllers')  // Fixed typo: messageControllers -> messageController
 const auth = require('../middleware/authMiddleware')
 
 // GET /api/messages?conversationKey=xxx
