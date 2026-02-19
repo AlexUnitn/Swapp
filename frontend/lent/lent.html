@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Oggetti Prestati</title>
+  <link rel="stylesheet" href="lent.css">
+  <script src="lent.js" defer></script>
+</head>
+<body>
+	<div class="top-left-back">
+		<a href="../account/account.html" class="back-btn">← Indietro</a>
+	</div>
+	<div class="container">
+		<div class="card">
+			<h1 class="title">📤 Oggetti Prestati</h1>
+			<p class="subtitle">Oggetti che hai messo a disposizione degli altri</p>
+			
+			<div id="loading" class="loading">Caricamento...</div>
+			<div id="error" class="error hidden"></div>
+			
+			<div id="itemsList" class="items-list hidden">
+			</div>
+			
+			<div id="emptyState" class="empty-state hidden">
+				<span class="icon">📭</span>
+				<p>Non hai ancora prestato nessun oggetto</p>
+				<a href="../main/index.html" class="btn-primary">Esplora oggetti</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
