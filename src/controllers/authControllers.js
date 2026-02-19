@@ -7,8 +7,8 @@ const validate = require('../utils/validation')
 async function register(req, res){
     try {
         // validate request body
-        const {firstName,lastName, username, email, phoneNumber, password} = req.body
-        if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !email?.trim() || !phoneNumber?.trim() || !password?.trim()) {
+        const {firstName,lastName, username, email, phoneNumber, password, fiscalCode} = req.body
+        if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !email?.trim() || !phoneNumber?.trim() || !password?.trim() || !fiscalCode?.trim()) {
             return res.status(400).json({message: 'All fields are required'})
         }
 
@@ -28,9 +28,16 @@ async function register(req, res){
         }
 
         // check if user already exists
-        const existingUser = await userModel.findOne({$or: [{email: req.body.email}, {username: req.body.username}, {phoneNumber: req.body.phoneNumber}]})
+        const existingUser = await userModel.findOne({
+            $or: [
+                {email: req.body.email}, 
+                {username: req.body.username}, 
+                {phoneNumber: req.body.phoneNumber},
+                {fiscalCode: req.body.fiscalCode}
+            ]
+        })
         if (existingUser) {
-            return res.status(400).json({message: 'Email, username or phone number already registered'})
+            return res.status(400).json({message: 'Email, username, phone number or fiscal code already registered'})
         }
 
         //hash password
@@ -44,6 +51,7 @@ async function register(req, res){
             username: req.body.username,
             email: req.body.email,
             phoneNumber: req.body.phoneNumber,
+            fiscalCode: req.body.fiscalCode,
             password: hashedPassword
         })
         // save the new user
@@ -82,15 +90,20 @@ async function login(req, res){
         }
 
         // check request body has at least one identifier
-        if (!email?.trim() && !username?.trim() && !phoneNumber?.trim()) {
+        const identifier = email?.trim() || username?.trim() || phoneNumber?.trim();
+
+        if (!identifier) {
             return res.status(400).json({message: 'Email, username or phone number is required'})
         }
 
-        // Build query dynamically based on provided fields
-        const query = {};
-        if (email?.trim()) query.email = email.trim();
-        else if (username?.trim()) query.username = username.trim();
-        else if (phoneNumber?.trim()) query.phoneNumber = phoneNumber.trim();
+        // Build query to search in all identifier fields
+        const query = {
+            $or: [
+                { email: identifier },
+                { username: identifier },
+                { phoneNumber: identifier }
+            ]
+        };
 
         // check the user exists
         const existingUser = await userModel.findOne(query)

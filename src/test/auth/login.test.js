@@ -4,6 +4,7 @@ const request = require('supertest')
 const bcrypt = require('bcryptjs')
 const app = require('../../app')
 const User = require('../../models/User')
+const { generateCF } = require('../../utils/validation')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 const basePassword = 'Password123!'
@@ -17,6 +18,7 @@ const createUser = async (overrides = {}) => {
         username: `login_${baseId}_${Math.random().toString(36).slice(2, 8)}`,
         email: `login_${baseId}_${Math.random().toString(36).slice(2, 8)}@example.com`,
         phoneNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        fiscalCode: generateCF(),
         password,
         ...overrides
     })
@@ -71,6 +73,30 @@ describe('Auth API', () => {
                 .send({})
             expect(response.status).toBe(400)
             expect(response.body.message).toBe('Password is required')
+        })
+
+        test('deve effettuare il login con username valido', async () => {
+            const user = await createUser()
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    username: user.username,
+                    password: basePassword
+                })
+            expect(response.status).toBe(200)
+            expect(response.body).toHaveProperty('token')
+        })
+
+        test('deve effettuare il login con email passata nel campo username (simulazione frontend)', async () => {
+            const user = await createUser()
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    username: user.email, // simulates frontend behavior
+                    password: basePassword
+                })
+            expect(response.status).toBe(200)
+            expect(response.body).toHaveProperty('token')
         })
     })
 })

@@ -5,6 +5,8 @@ const app = require('../../app')
 const User = require('../../models/User')
 const Item = require('../../models/Item')
 const Booking = require('../../models/Booking')
+const { generateCF } = require('../../utils/validation')
+const { createToken } = require('../../utils/authUtils')
 
 const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 let createdUserIds = []
@@ -18,6 +20,7 @@ const createUser = async () => {
         username: `booking_${baseId}_${Math.random().toString(36).slice(2, 8)}`,
         email: `booking_${baseId}_${Math.random().toString(36).slice(2, 8)}@example.com`,
         phoneNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        fiscalCode: generateCF(),
         password: 'Password123!'
     })
     createdUserIds.push(user._id)
@@ -75,15 +78,20 @@ describe('Booking API', () => {
         test('deve restituire i booking per utente', async () => {
             const owner = await createUser()
             const borrower = await createUser()
+            const token = createToken(borrower)
             const item = await createItem(owner._id)
             await createBooking(item, borrower)
             const response = await request(app).get(`/api/booking/user/${borrower._id}`)
+                .set('Authorization', `Bearer ${token}`)
             expect(response.status).toBe(200)
             expect(Array.isArray(response.body)).toBe(true)
         })
 
         test('deve restituire errore per utente non valido', async () => {
+            const user = await createUser()
+            const token = createToken(user)
             const response = await request(app).get('/api/booking/user/000000000000000000000000')
+                .set('Authorization', `Bearer ${token}`)
             expect(response.status).toBe(404)
             expect(response.body.message).toBe('User not found')
         })
