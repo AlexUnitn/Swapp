@@ -7,8 +7,8 @@ const validate = require('../utils/validation')
 async function register(req, res){
     try {
         // validate request body
-        const {firstName,lastName, username, email, phoneNumber, password} = req.body
-        if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !email?.trim() || !phoneNumber?.trim() || !password?.trim()) {
+        const {firstName,lastName, username, email, phoneNumber, password, fiscalCode} = req.body
+        if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !email?.trim() || !phoneNumber?.trim() || !password?.trim() || !fiscalCode?.trim()) {
             return res.status(400).json({message: 'All fields are required'})
         }
 
@@ -28,9 +28,16 @@ async function register(req, res){
         }
 
         // check if user already exists
-        const existingUser = await userModel.findOne({$or: [{email: req.body.email}, {username: req.body.username}, {phoneNumber: req.body.phoneNumber}]})
+        const existingUser = await userModel.findOne({
+            $or: [
+                {email: req.body.email}, 
+                {username: req.body.username}, 
+                {phoneNumber: req.body.phoneNumber},
+                {fiscalCode: req.body.fiscalCode}
+            ]
+        })
         if (existingUser) {
-            return res.status(400).json({message: 'Email, username or phone number already registered'})
+            return res.status(400).json({message: 'Email, username, phone number or fiscal code already registered'})
         }
 
         //hash password
@@ -44,6 +51,7 @@ async function register(req, res){
             username: req.body.username,
             email: req.body.email,
             phoneNumber: req.body.phoneNumber,
+            fiscalCode: req.body.fiscalCode,
             password: hashedPassword
         })
         // save the new user
