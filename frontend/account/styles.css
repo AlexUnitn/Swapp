@@ -58,6 +58,10 @@ body{
   font-weight:500;
   transition:0.2s;
   cursor:pointer;
+  font-family:inherit;
+  font-size:inherit;
+  width:100%;
+  box-sizing:border-box;
 }
 
 .menu-item .icon{
@@ -74,7 +78,6 @@ body{
 }
 
 .logout {
-    margin-top: 20px;
     border-color: #fecaca;
     color: #ef4444;
 }
@@ -89,9 +92,8 @@ body{
   .container{ padding:10px; }
 }
 
-/* css file or <style> block */
 .top-left-back {
-  position: fixed;   /* keeps it in viewport */
+  position: fixed;
   top: 12px;
   left: 12px;
   z-index: 1000;
