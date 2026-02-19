@@ -1,14 +1,55 @@
-// We'll build conversations from bookings and items and keep messages in localStorage
-let convs = []; // {id, name, avatar, itemId, lastMsg, lastTime}
-let messagesStore = {}; // keyed by convKey -> [{sender,text,time,meta}]
+// Configuration
+const API_BASE = ''; // or your API base URL
 
-// ---- render conversation list ----
+// State
+let convs = []; // {key, name, avatar, itemId, counterpartId, lastMsg, lastTime}
+let currentUserId = null;
+let activeConvKey = null;
+
+// DOM Elements
 const convList = document.getElementById('convList');
 const searchConv = document.getElementById('searchConv');
+const chatAvatar = document.querySelector('.chat-header .chat-avatar');
+const chatName = document.querySelector('.chat-header .chat-name');
+const messagesDiv = document.getElementById('messages');
+const composeForm = document.getElementById('composeForm');
+const msgInput = document.getElementById('msgInput');
+
+// ---- Utility Functions ----
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+function getCurrentUserId() {
+  if (currentUserId) return currentUserId;
+  const stored = localStorage.getItem('userId') || 
+    (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+  currentUserId = stored;
+  return stored;
+}
 
 function convKey(counterpartId, itemId) {
   return `${counterpartId}:${itemId || 'noitem'}`;
 }
+
+function parseConvKey(key) {
+  const [counterpartId, itemId] = key.split(':');
+  return { counterpartId, itemId: itemId === 'noitem' ? null : itemId };
+}
+
+function formatTime(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s]);
+}
+
+// ---- Render Functions ----
 
 function renderConvList(list) {
   convList.innerHTML = '';
@@ -16,15 +57,108 @@ function renderConvList(list) {
     const li = document.createElement('li');
     li.className = 'conv-item';
     li.dataset.key = c.key;
+    const timeStr = c.lastTime ? formatTime(c.lastTime) : '';
     li.innerHTML = `
       <img class="conv-avatar" src="${c.avatar}" alt="">
       <div class="conv-body">
-        <div class="conv-name">${c.name}</div>
-        <div class="conv-last">${c.lastMsg || ''}</div>
+        <div class="conv-name">${escapeHtml(c.name)}</div>
+        <div class="conv-last">${escapeHtml(c.lastMsg || '')}</div>
       </div>
-      <div class="conv-time">${c.lastTime || ''}</div>`;
+      <div class="conv-time">${timeStr}</div>`;
     convList.appendChild(li);
   });
+}
+
+function addBubble(msg, isMe) {
+  const div = document.createElement('div');
+  div.className = `bubble ${isMe ? 'you' : 'other'}`;
+  div.textContent = msg.text;
+  messagesDiv.appendChild(div);
+
+  const time = document.createElement('div');
+  time.className = 'time';
+  time.textContent = formatTime(msg.createdAt || msg.time || new Date());
+  time.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+  messagesDiv.appendChild(time);
+}
+
+// ---- API Functions ----
+
+async function fetchMessages(conversationKey) {
+  try {
+    const res = await fetch(`${API_BASE}/api/messages?conversationKey=${encodeURIComponent(conversationKey)}`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch messages');
+    return await res.json();
+  } catch (e) {
+    console.error('Error fetching messages:', e);
+    return [];
+  }
+}
+
+async function sendMessage(conversationKey, recipientId, text) {
+  try {
+    const res = await fetch(`${API_BASE}/api/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify({
+        conversationKey,
+        recipient: recipientId,
+        text
+      })
+    });
+    if (!res.ok) throw new Error('Failed to send message');
+    return await res.json();
+  } catch (e) {
+    console.error('Error sending message:', e);
+    throw e;
+  }
+}
+
+// ---- Conversation Management ----
+
+async function ensureConv(counterpartId, itemId, headers) {
+  const key = convKey(counterpartId, itemId);
+  
+  // Check if already exists
+  const existing = convs.find(c => c.key === key);
+  if (existing) return existing;
+
+  // Fetch user info
+  const uRes = await fetch(`/api/users/${counterpartId}`, { headers });
+  const user = uRes.ok ? await uRes.json() : { username: 'User' };
+  const avatar = `https://i.pravatar.cc/150?u=${counterpartId}`;
+  
+  // Fetch last message for this conversation
+  let lastMsg = '';
+  let lastTime = '';
+  try {
+    const msgs = await fetchMessages(key);
+    if (msgs && msgs.length > 0) {
+      lastMsg = msgs[msgs.length - 1].text;
+      lastTime = msgs[msgs.length - 1].createdAt;
+    }
+  } catch (e) {
+    // If no messages yet, that's fine
+    lastMsg = itemId ? `Conversation about item` : '';
+  }
+
+  const conv = {
+    key,
+    counterpartId,
+    itemId,
+    name: user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+    avatar,
+    lastMsg,
+    lastTime
+  };
+  
+  convs.push(conv);
+  return conv;
 }
 
 async function initConversations() {
@@ -34,106 +168,74 @@ async function initConversations() {
     return;
   }
 
-  const userId = localStorage.getItem('userId') || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
-  if (!userId) return;
+  const userId = getCurrentUserId();
+  if (!userId) {
+    console.error('No user ID found');
+    return;
+  }
 
-  // load persisted messages
-  try { messagesStore = JSON.parse(localStorage.getItem('messages') || '{}'); } catch(e){ messagesStore = {}; }
+  const headers = getAuthHeaders();
 
-  // fetch bookings where user is borrower
-  const headers = { 'Authorization': `Bearer ${token}` };
+  // Fetch bookings where user is borrower
   const borrowerRes = await fetch(`/api/booking/user/${userId}`, { headers });
   const borrowerBookings = borrowerRes.ok ? await borrowerRes.json() : [];
 
-  // fetch items owned by user
-  // Items API might be public or protected, better to send token if we have it
+  // Fetch items owned by user
   const myItemsRes = await fetch(`/api/item/user/${userId}`, { headers });
   const myItems = myItemsRes.ok ? await myItemsRes.json() : [];
   const myItemIds = myItems.map(i => i._id || i.id);
 
-  // fetch all bookings to find those referencing my items
+  // Fetch all bookings to find those referencing my items
   const allBookingsRes = await fetch('/api/booking', { headers });
   const allBookings = allBookingsRes.ok ? await allBookingsRes.json() : [];
+  const ownerBookings = allBookings.filter(b => 
+    myItemIds.includes((b.item && (b.item._id || b.item)) || b.item)
+  );
 
-  const ownerBookings = allBookings.filter(b => myItemIds.includes((b.item && (b.item._id || b.item)) || b.item));
-
-  const convMap = new Map();
-
-  // helper to ensure counterpart user info
-  async function ensureConv(counterpartId, itemId) {
-    const key = convKey(counterpartId, itemId);
-    if (convMap.has(key)) return;
-    // fetch user info
-    const uRes = await fetch(`/api/users/${counterpartId}`, { headers });
-    const user = uRes.ok ? await uRes.json() : { username: 'User' };
-    const avatar = `https://i.pravatar.cc/150?u=${counterpartId}`;
-    // attempt to get last message/time from store
-    const msgs = messagesStore[key] || [];
-    const last = msgs.length ? msgs[msgs.length-1] : null;
-    convMap.set(key, {
-      key,
-      counterpartId,
-      itemId,
-      name: user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
-      avatar,
-      lastMsg: last ? last.text : (itemId ? `Conversazione su item ${itemId}` : ''),
-      lastTime: last ? last.time : ''
-    });
-  }
-
-  // process borrower bookings -> counterpart is item owner
+  // Build conversations
   for (const b of borrowerBookings) {
     const itemId = (b.item && (b.item._id || b.item)) || b.item;
-    // fetch item to get owner
-    const itRes = await fetch(`/api/item/${itemId}`);
+    const itRes = await fetch(`/api/item/${itemId}`, { headers });
     const it = itRes.ok ? await itRes.json() : null;
     if (!it) continue;
-    const ownerId = it.userId;
-    await ensureConv(ownerId, itemId);
+    await ensureConv(it.userId, itemId, headers);
   }
 
-  // process owner bookings -> counterpart is borrower
   for (const b of ownerBookings) {
     const itemId = (b.item && (b.item._id || b.item)) || b.item;
     const borrowerId = b.borrower;
-    await ensureConv(borrowerId, itemId);
+    await ensureConv(borrowerId, itemId, headers);
   }
 
-  // check for contact/item params in URL to start a new conversation
+  // Check for contact/item params in URL
   const params = new URLSearchParams(window.location.search);
   const contactId = params.get('contact');
   const paramItemId = params.get('item');
 
   if (contactId) {
-    // ensure conversation exists (create if new)
-    await ensureConv(contactId, paramItemId);
+    await ensureConv(contactId, paramItemId, headers);
   }
 
-  convs = Array.from(convMap.values());
+  // Sort by last message time
+  convs.sort((a, b) => new Date(b.lastTime || 0) - new Date(a.lastTime || 0));
+  
   renderConvList(convs);
 
   if (contactId) {
-      const targetKey = convKey(contactId, paramItemId);
-      openConversation(targetKey);
+    const targetKey = convKey(contactId, paramItemId);
+    openConversation(targetKey);
   } else if (convs.length) {
-      openConversation(convs[0].key);
+    openConversation(convs[0].key);
   }
 }
 
-initConversations().catch(err => console.error(err));
+// ---- Event Handlers ----
 
-// ---- search / filter ----
 searchConv.addEventListener('input', () => {
   const q = searchConv.value.toLowerCase();
   const filtered = convs.filter(c => c.name.toLowerCase().includes(q));
   renderConvList(filtered);
 });
-
-// ---- open conversation ----
-const chatAvatar  = document.querySelector('.chat-header .chat-avatar');
-const chatName    = document.querySelector('.chat-header .chat-name');
-const messagesDiv = document.getElementById('messages');
-let activeConvKey = null;
 
 convList.addEventListener('click', async e => {
   const item = e.target.closest('.conv-item');
@@ -146,22 +248,24 @@ async function openConversation(key) {
   activeConvKey = key;
   const conv = convs.find(c => c.key === key);
   if (!conv) return;
+
   chatAvatar.src = conv.avatar;
   chatName.textContent = conv.name;
 
   const chatItemDiv = document.getElementById('chat-item');
-  // if conversation is about an item, fetch and render it at the top
+  
+  // Render item info if applicable
   if (conv.itemId) {
     try {
-      const itRes = await fetch(`/api/item/${conv.itemId}`);
+      const itRes = await fetch(`/api/item/${conv.itemId}`, { headers: getAuthHeaders() });
       if (itRes.ok) {
         const it = await itRes.json();
-        chatName.textContent = `${conv.name}`;
-        // render item block
         const mainImage = (it.images && it.images.find(img => img.isMain)) || (it.images && it.images[0]);
-        const imgTag = mainImage ? `<img src="data:image/png;base64,${mainImage.data}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;margin-right:12px;"/>` : '';
+        const imgTag = mainImage ? 
+          `<img src="data:image/png;base64,${mainImage.data}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;margin-right:12px;"/>` : '';
         const title = it.title || `Item ${conv.itemId}`;
-        const desc = it.description ? (it.description.length > 140 ? it.description.slice(0,140)+'…' : it.description) : '';
+        const desc = it.description ? 
+          (it.description.length > 140 ? it.description.slice(0,140)+'…' : it.description) : '';
         const location = it.location ? (it.location.city || '') : '';
 
         chatItemDiv.style.display = 'flex';
@@ -184,84 +288,68 @@ async function openConversation(key) {
       chatItemDiv.style.display = 'none';
     }
   } else {
-    if (chatItemDiv) chatItemDiv.style.display = 'none';
+    chatItemDiv.style.display = 'none';
   }
 
-  // mark active
+  // Mark active
   document.querySelectorAll('.conv-item').forEach(li => {
     li.classList.toggle('active', li.dataset.key === key);
   });
 
-  // load messages: try server endpoint first
+  // Load messages from API
   messagesDiv.innerHTML = '';
-  let msgs = [];
-  try {
-    const token = localStorage.getItem('token');
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    const res = await fetch(`/api/messages/conversation/${encodeURIComponent(key)}`, { headers });
-    if (res.ok) msgs = await res.json();
-  } catch (e) { /* ignore */ }
-
-  // fallback to localStorage
-  if (!msgs || !msgs.length) {
-    msgs = messagesStore[key] || [];
-  }
-
-  msgs.forEach(msg => addBubble(msg));
+  const msgs = await fetchMessages(key);
+  
+  const myId = getCurrentUserId();
+  msgs.forEach(msg => {
+    const isMe = msg.sender === myId || msg.sender?._id === myId;
+    addBubble(msg, isMe);
+  });
+  
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
-
-function addBubble(msg) {
-  const div = document.createElement('div');
-  div.className = `bubble ${msg.sender}`;
-  div.textContent = msg.text;
-  messagesDiv.appendChild(div);
-
-  const time = document.createElement('div');
-  time.className = 'time';
-  time.textContent = msg.time;
-  messagesDiv.appendChild(time);
-}
-
-// simple HTML escape
-function escapeHtml(str){
-  if (!str) return '';
-  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s]);
-}
-
-// ---- send message ----
-const composeForm = document.getElementById('composeForm');
-const msgInput    = document.getElementById('msgInput');
 
 composeForm.addEventListener('submit', async e => {
   e.preventDefault();
   if (!activeConvKey) return;
+  
   const text = msgInput.value.trim();
   if (!text) return;
 
-  const msg = { sender: 'you', text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-  addBubble(msg);
+  const conv = convs.find(c => c.key === activeConvKey);
+  if (!conv) return;
+
+  const myId = getCurrentUserId();
+  
+  // Optimistically add to UI
+  const tempMsg = { text, createdAt: new Date().toISOString() };
+  addBubble(tempMsg, true);
   msgInput.value = '';
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-  // try to POST to server endpoint if available
   try {
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Content-Type':'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-    };
-    await fetch('/api/messages', { 
-      method: 'POST', 
-      headers, 
-      body: JSON.stringify({conversation: activeConvKey, message: msg}) 
+    // Send to server
+    const savedMsg = await sendMessage(activeConvKey, conv.counterpartId, text);
+    
+    // Update conversation list with new message
+    conv.lastMsg = text;
+    conv.lastTime = savedMsg.createdAt || new Date().toISOString();
+    
+    // Re-sort and re-render conversation list
+    convs.sort((a, b) => new Date(b.lastTime || 0) - new Date(a.lastTime || 0));
+    renderConvList(convs);
+    
+    // Re-mark active
+    document.querySelectorAll('.conv-item').forEach(li => {
+      li.classList.toggle('active', li.dataset.key === activeConvKey);
     });
-  } catch (e) { /* ignore */ }
-
-  // persist locally
-  messagesStore[activeConvKey] = messagesStore[activeConvKey] || [];
-  messagesStore[activeConvKey].push(msg);
-  localStorage.setItem('messages', JSON.stringify(messagesStore));
+    
+  } catch (e) {
+    // Show error state on the bubble if needed
+    console.error('Failed to send:', e);
+    alert('Failed to send message. Please try again.');
+  }
 });
 
-// no-op: conversations will open after initialization
+// Initialize
+initConversations().catch(err => console.error(err));
