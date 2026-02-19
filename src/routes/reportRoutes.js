@@ -1,11 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const itemController = require('../controllers/reportControllers')
+const reportController = require('../controllers/reportControllers')
 
 // GET api/report
-router.get('/', itemController.getReport)
+router.get('/', reportController.getReport)
 // POST api/report
-router.post('/', itemController.createReport)
+router.post('/', reportController.createReport)
 // GET api/report/:id
-router.get('/:id', itemController.getReportById)
+router.get('/:id', reportController.getReportById)
 module.exports = router
