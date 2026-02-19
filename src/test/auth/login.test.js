@@ -9,6 +9,14 @@ const baseId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 const basePassword = 'Password123!'
 let createdUserIds = []
 
+// Simple CF generator
+const generateCF = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const rand = (str, len) => Array(len).fill(0).map(() => str[Math.floor(Math.random() * str.length)]).join('');
+    return rand(letters, 6) + rand(digits, 2) + rand(letters, 1) + rand(digits, 2) + rand(letters, 1) + rand(digits, 3) + rand(letters, 1);
+}
+
 const createUser = async (overrides = {}) => {
     const password = await bcrypt.hash(basePassword, 10)
     const user = await User.create({
@@ -17,6 +25,7 @@ const createUser = async (overrides = {}) => {
         username: `login_${baseId}_${Math.random().toString(36).slice(2, 8)}`,
         email: `login_${baseId}_${Math.random().toString(36).slice(2, 8)}@example.com`,
         phoneNumber: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        fiscalCode: generateCF(),
         password,
         ...overrides
     })
