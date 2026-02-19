@@ -77,7 +77,7 @@ function renderItem(item) {
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    Max ${item.maxLoanDuration || '?'} giorni
+                    ${item.maxLoanDuration ? `Max ${item.maxLoanDuration} giorni` : 'Durata massima non specificata'}
                 </div>
             </div>
 

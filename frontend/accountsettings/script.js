@@ -1,11 +1,23 @@
-const form           = document.getElementById('accountForm');
-const avatarInput    = document.getElementById('avatarInput');
-const avatarPreview  = document.getElementById('avatarPreview');
-const editBtn        = document.getElementById('editBtn');
-const saveBtn        = document.getElementById('saveBtn');
-const cancelBtn      = document.getElementById('cancelBtn');
+const form = document.getElementById('accountForm');
+const avatarInput = document.getElementById('avatarInput');
+const avatarPreview = document.getElementById('avatarPreview');
+const editBtn = document.getElementById('editBtn');
+const saveBtn = document.getElementById('saveBtn');
+const cancelBtn = document.getElementById('cancelBtn');
 
-let original = {};   // snapshot for cancel
+const fullNameText = document.getElementById('fullNameText');
+const usernameText = document.getElementById('usernameText');
+const emailText = document.getElementById('emailText');
+const bioText = document.getElementById('bioText');
+
+const fullNameInput = form.elements['fullName'];
+const usernameInput = form.elements['username'];
+const emailInput = form.elements['email'];
+const bioInput = form.elements['bio'];
+
+let original = {};
+let currentUserId = null;
+let currentToken = null;
 
 /* ---------- avatar preview ---------- */
 avatarInput.addEventListener('change', e => {
@@ -14,6 +26,8 @@ avatarInput.addEventListener('change', e => {
     avatarPreview.src = URL.createObjectURL(file);
   }
 });
+
+initializeAccountSettings();
 
 /* ---------- toggle edit / view ---------- */
 editBtn.addEventListener('click', () => {
@@ -33,21 +47,39 @@ form.addEventListener('submit', async e => {
   e.preventDefault();
   if (!form.checkValidity()) return form.reportValidity();
 
-  const payload = new FormData(form);
-  //per json quello sotto
-  //const payload = Object.fromEntries(new FormData(form));
-  if (avatarInput.files[0]) payload.set('avatar', avatarInput.files[0]);
+  const fullName = fullNameInput.value.trim();
+  const { firstName, lastName } = splitFullName(fullName);
+  if (!firstName || !lastName) {
+    alert('Inserisci nome e cognome.');
+    return;
+  }
+
+  const payload = {
+    firstName,
+    lastName,
+    username: usernameInput.value.trim(),
+    email: emailInput.value.trim()
+  };
 
   // disable while saving
   [saveBtn, cancelBtn].forEach(b => b.disabled = true);
   saveBtn.textContent = 'Saving…';
 
   try {
-    const res = await fetch('/api/account', { method: 'POST', body: payload });
+    const res = await fetch(`/api/users/${currentUserId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentToken}`
+      },
+      body: JSON.stringify(payload)
+    });
     if (!res.ok) throw new Error('Save failed');
     // success
     form.classList.remove('edit-mode');
     toggleButtons(true);
+    applyUserToView({ ...payload });
+    persistUser(payload);
     alert('Saved ✔');
   } catch (err) {
     alert(err.message);
@@ -72,7 +104,65 @@ function serializeForm(formEl) {
 
 function restoreForm(data) {
   Object.keys(data).forEach(k => {
-    const el = formEl.elements[k];
+    const el = form.elements[k];
     if (el) el.value = data[k];
   });
+}
+
+async function initializeAccountSettings() {
+  const token = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+  const storedUserObj = storedUser ? JSON.parse(storedUser) : null;
+  const userId = localStorage.getItem('userId') || storedUserObj?.id || storedUserObj?._id || null;
+
+  if (!token || !userId) {
+    location.href = '../login/login.html';
+    return;
+  }
+
+  currentToken = token;
+  currentUserId = userId;
+
+  try {
+    const res = await fetch(`/api/users/${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Impossibile caricare i dati utente');
+    const user = await res.json();
+    const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+    fullNameInput.value = fullName;
+    usernameInput.value = user.username || '';
+    emailInput.value = user.email || '';
+    bioInput.value = '';
+    applyUserToView({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email
+    });
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function applyUserToView(user) {
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+  fullNameText.textContent = fullName || '';
+  usernameText.textContent = user.username || '';
+  emailText.textContent = user.email || '';
+  bioText.textContent = '';
+}
+
+function persistUser(user) {
+  const storedUser = localStorage.getItem('user');
+  const storedUserObj = storedUser ? JSON.parse(storedUser) : {};
+  const merged = { ...storedUserObj, ...user };
+  localStorage.setItem('user', JSON.stringify(merged));
+}
+
+function splitFullName(fullName) {
+  const parts = fullName.split(/\s+/).filter(Boolean);
+  const firstName = parts.shift() || '';
+  const lastName = parts.join(' ');
+  return { firstName, lastName };
 }
