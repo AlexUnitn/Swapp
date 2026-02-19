@@ -11,7 +11,6 @@ module.exports = function(req, res, next){
     // extract token from header
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7, authHeader.length) : authHeader;
 
-
     try{
         // Verify the token
         const verify = jwt.verify(token, process.env.JWT_SECRET)
