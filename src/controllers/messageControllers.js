@@ -1,5 +1,5 @@
 const Message = require('../models/Message')
-
+const mongoose = require('mongoose')
 // Create a message
 async function createMessage(req, res) {
   try {
@@ -66,14 +66,18 @@ async function getConversation(req, res) {
 async function getMyConversations(req, res) {
   try {
     const userId = req.user.id
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user id' })
+    }
+    const userObjectId = new mongoose.Types.ObjectId(userId)
 
     // Aggregate to get unique conversation keys with last message
     const conversations = await Message.aggregate([
       {
         $match: {
           $or: [
-            { sender: mongoose.Types.ObjectId(userId) },
-            { recipient: mongoose.Types.ObjectId(userId) }
+            { sender: userObjectId },
+            { recipient: userObjectId }
           ]
         }
       },
@@ -88,7 +92,7 @@ async function getMyConversations(req, res) {
             $sum: {
               $cond: [
                 { $and: [
-                  { $eq: ['$recipient', mongoose.Types.ObjectId(userId)] },
+                  { $eq: ['$recipient', userObjectId] },
                   { $eq: ['$read', false] }
                 ]},
                 1,

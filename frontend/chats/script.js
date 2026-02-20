@@ -25,17 +25,32 @@ function getAuthHeaders() {
 function getCurrentUserId() {
   if (currentUserId) return currentUserId;
   const stored = localStorage.getItem('userId') || 
-    (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+    (localStorage.getItem('user') ? (JSON.parse(localStorage.getItem('user')).id || JSON.parse(localStorage.getItem('user'))._id) : null);
   currentUserId = stored;
   return stored;
 }
 
 function convKey(counterpartId, itemId) {
-  return `${counterpartId}:${itemId || 'noitem'}`;
+  const me = normalizeId(getCurrentUserId());
+  const other = normalizeId(counterpartId);
+  if (!me || !other) {
+    return `${other || 'unknown'}:${itemId || 'noitem'}`;
+  }
+  const pair = [me, other].sort();
+  return `${pair[0]}:${pair[1]}:${itemId || 'noitem'}`;
 }
 
-function parseConvKey(key) {
-  const [counterpartId, itemId] = key.split(':');
+function parseConvKey(key, currentUserId) {
+  const parts = key.split(':');
+  if (parts.length >= 3) {
+    const userA = parts[0];
+    const userB = parts[1];
+    const itemId = parts.slice(2).join(':');
+    const me = normalizeId(currentUserId);
+    const counterpartId = me === userA ? userB : userA;
+    return { userA, userB, counterpartId, itemId: itemId === 'noitem' ? null : itemId };
+  }
+  const [counterpartId, itemId] = parts;
   return { counterpartId, itemId: itemId === 'noitem' ? null : itemId };
 }
 
@@ -47,6 +62,17 @@ function formatTime(dateString) {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s]);
+}
+
+function normalizeId(id) {
+  if (!id) return null;
+  return String(id);
+}
+
+function getImageSrc(data) {
+  if (!data) return 'https://via.placeholder.com/72?text=No+Image';
+  if (data.startsWith('http') || data.startsWith('data:')) return data;
+  return `data:image/jpeg;base64,${data}`;
 }
 
 // ---- Render Functions ----
@@ -119,6 +145,19 @@ async function sendMessage(conversationKey, recipientId, text) {
   }
 }
 
+async function fetchMyConversations() {
+  try {
+    const res = await fetch(`${API_BASE}/api/messages/conversations`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to fetch conversations');
+    return await res.json();
+  } catch (e) {
+    console.error('Error fetching conversations:', e);
+    return [];
+  }
+}
+
 // ---- Conversation Management ----
 
 async function ensureConv(counterpartId, itemId, headers) {
@@ -157,6 +196,30 @@ async function ensureConv(counterpartId, itemId, headers) {
     lastTime
   };
   
+  convs.push(conv);
+  return conv;
+}
+
+async function ensureConvFromKey(key, counterpartId, itemId, headers, lastMsg, lastTime) {
+  const existing = convs.find(c => c.key === key);
+  if (existing) return existing;
+
+  let user = { username: 'User' };
+  if (counterpartId) {
+    const uRes = await fetch(`/api/users/${counterpartId}`, { headers });
+    user = uRes.ok ? await uRes.json() : user;
+  }
+
+  const conv = {
+    key,
+    counterpartId,
+    itemId,
+    name: user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+    avatar: `https://i.pravatar.cc/150?u=${counterpartId || key}`,
+    lastMsg: lastMsg || '',
+    lastTime: lastTime || ''
+  };
+
   convs.push(conv);
   return conv;
 }
@@ -205,6 +268,22 @@ async function initConversations() {
     const itemId = (b.item && (b.item._id || b.item)) || b.item;
     const borrowerId = b.borrower;
     await ensureConv(borrowerId, itemId, headers);
+  }
+
+  const convSummaries = await fetchMyConversations();
+  for (const summary of convSummaries) {
+    const key = summary._id || summary.conversationKey;
+    if (!key) continue;
+    const parsed = parseConvKey(key, userId);
+    const last = summary.lastMessage || {};
+    const senderId = normalizeId(last.sender);
+    const recipientId = normalizeId(last.recipient);
+    const me = normalizeId(userId);
+    let counterpartId = parsed.counterpartId;
+    if (!counterpartId && (senderId || recipientId)) {
+      counterpartId = senderId === me ? recipientId : senderId;
+    }
+    await ensureConvFromKey(key, counterpartId, parsed.itemId, headers, last.text, last.createdAt);
   }
 
   // Check for contact/item params in URL
@@ -261,8 +340,9 @@ async function openConversation(key) {
       if (itRes.ok) {
         const it = await itRes.json();
         const mainImage = (it.images && it.images.find(img => img.isMain)) || (it.images && it.images[0]);
+        const mainImageSrc = mainImage ? getImageSrc(mainImage.data) : '';
         const imgTag = mainImage ? 
-          `<img src="data:image/png;base64,${mainImage.data}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;margin-right:12px;"/>` : '';
+          `<img src="${mainImageSrc}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;margin-right:12px;"/>` : '';
         const title = it.title || `Item ${conv.itemId}`;
         const desc = it.description ? 
           (it.description.length > 140 ? it.description.slice(0,140)+'…' : it.description) : '';
