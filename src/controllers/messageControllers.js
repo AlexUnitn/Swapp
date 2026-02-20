@@ -1,4 +1,5 @@
 const Message = require('../models/Message')
+const mongoose = require('mongoose')
 
 // Create a message
 async function createMessage(req, res) {
