@@ -3,34 +3,50 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const userId = localStorage.getItem('userId')
     || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : null);
+  const token = localStorage.getItem('token');
 
-  if (!userId) {
+  if (!userId || !token) {
     showError('ID utente non trovato. Effettua il login.');
     return;
   }
 
-  loadItems(userId);
+  loadItems(userId, token);
 });
 
-async function loadItems(userId) {
+async function loadItems(userId, token) {
   const loadingEl = document.getElementById('loading');
   const errorEl = document.getElementById('error');
   const itemsListEl = document.getElementById('itemsList');
   const emptyStateEl = document.getElementById('emptyState');
 
   try {
-    // Usa l'endpoint dedicato per gli oggetti presi in prestito
-    const response = await fetch(`/api/item/recipient/${userId}`);
-    
+    const response = await fetch(`/api/booking/user/${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!response.ok) {
-      throw new Error('Errore nel caricamento degli oggetti');
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(errorBody.message || 'Errore nel caricamento degli oggetti');
     }
 
-    const items = await response.json();
+    const bookings = await response.json();
 
     loadingEl.classList.add('hidden');
 
-    if (!items || items.length === 0) {
+    if (!bookings || bookings.length === 0) {
+      emptyStateEl.classList.remove('hidden');
+      return;
+    }
+
+    const itemIds = bookings.map(b => (b.item && (b.item._id || b.item)) || b.item).filter(Boolean);
+    const uniqueIds = Array.from(new Set(itemIds.map(id => id.toString())));
+    const itemResponses = await Promise.all(
+      uniqueIds.map(id => fetch(`/api/item/${id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => res.ok ? res.json() : null)
+        .catch(() => null))
+    );
+    const items = itemResponses.filter(Boolean);
+
+    if (!items.length) {
       emptyStateEl.classList.remove('hidden');
       return;
     }
