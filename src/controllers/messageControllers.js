@@ -1,7 +1,5 @@
 const Message = require('../models/Message')
-const mongoose = require('mongoose')
-const itemModel = require('../models/Item')
-const bookingModel = require('../models/Booking')
+
 // Create a message
 async function createMessage(req, res) {
   try {

@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const messageController = require('../controllers/messageController')  // Fixed typo: messageControllers -> messageController
 const messageController = require('../controllers/messageControllers')
 const auth = require('../middleware/authMiddleware')
 
