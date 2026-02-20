@@ -1,5 +1,7 @@
 const Message = require('../models/Message')
 const mongoose = require('mongoose')
+const itemModel = require('../models/Item')
+const bookingModel = require('../models/Booking')
 // Create a message
 async function createMessage(req, res) {
   try {
@@ -29,6 +31,133 @@ async function createMessage(req, res) {
     return res.status(201).json(doc)
   } catch (err) {
     console.error('Create message error:', err)
+    return res.status(500).json({ message: err.message })
+  }
+}
+
+async function createBookingProposal(req, res) {
+  try {
+    const { conversationKey, recipient, itemId, requestedStartDate, requestedEndDate } = req.body
+    if (!conversationKey || !recipient || !itemId || !requestedStartDate || !requestedEndDate) {
+      return res.status(400).json({ message: 'Missing required fields' })
+    }
+
+    const item = await itemModel.findById(itemId)
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' })
+    }
+    if (item.status !== 'available') {
+      return res.status(409).json({ message: 'Item is not available' })
+    }
+
+    const start = new Date(requestedStartDate)
+    const end = new Date(requestedEndDate)
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      return res.status(400).json({ message: 'Invalid date range' })
+    }
+
+    const sender = req.user.id
+    const ownerId = String(item.userId)
+    const borrowerId = String(sender) === ownerId ? String(recipient) : String(sender)
+    const startLabel = start.toISOString().slice(0, 10)
+    const endLabel = end.toISOString().slice(0, 10)
+    const text = `Proposta prenotazione: ${item.title} (${startLabel} - ${endLabel})`
+
+    const doc = await Message.create({
+      conversationKey,
+      sender,
+      recipient,
+      text,
+      meta: {
+        type: 'booking_proposal',
+        status: 'pending',
+        itemId: String(item._id),
+        itemTitle: item.title,
+        ownerId,
+        borrowerId,
+        requestedStartDate: start.toISOString(),
+        requestedEndDate: end.toISOString()
+      }
+    })
+
+    await doc.populate('sender recipient', 'username firstName lastName')
+
+    return res.status(201).json(doc)
+  } catch (err) {
+    console.error('Create booking proposal error:', err)
+    return res.status(500).json({ message: err.message })
+  }
+}
+
+async function respondToBookingProposal(req, res) {
+  try {
+    const { action } = req.body
+    if (!['accept', 'reject'].includes(action)) {
+      return res.status(400).json({ message: 'Invalid action' })
+    }
+
+    const msg = await Message.findById(req.params.id)
+    if (!msg) {
+      return res.status(404).json({ message: 'Message not found' })
+    }
+
+    if (!msg.meta || msg.meta.type !== 'booking_proposal') {
+      return res.status(400).json({ message: 'Message is not a booking proposal' })
+    }
+
+    const userId = String(req.user.id)
+    if (String(msg.recipient) !== userId) {
+      return res.status(403).json({ message: 'Not authorized' })
+    }
+
+    const currentStatus = msg.meta.status || 'pending'
+    if (currentStatus !== 'pending') {
+      return res.status(409).json({ message: 'Proposal already handled' })
+    }
+
+    if (action === 'accept') {
+      const item = await itemModel.findById(msg.meta.itemId)
+      if (!item) {
+        return res.status(404).json({ message: 'Item not found' })
+      }
+      if (item.status !== 'available') {
+        return res.status(409).json({ message: 'Item is not available' })
+      }
+
+      const booking = await bookingModel.create({
+        item: item._id,
+        borrower: msg.meta.borrowerId || msg.sender,
+        requestedStartDate: msg.meta.requestedStartDate,
+        requestedEndDate: msg.meta.requestedEndDate,
+        status: 'accepted'
+      })
+
+      await itemModel.findByIdAndUpdate(item._id, { status: 'booked' })
+
+      msg.meta = {
+        ...msg.meta,
+        status: 'accepted',
+        bookingId: String(booking._id),
+        respondedBy: userId,
+        respondedAt: new Date().toISOString()
+      }
+    } else {
+      msg.meta = {
+        ...msg.meta,
+        status: 'rejected',
+        respondedBy: userId,
+        respondedAt: new Date().toISOString()
+      }
+    }
+
+    msg.markModified('meta')
+    await msg.save()
+
+    await msg.populate('sender recipient', 'username firstName lastName')
+
+    return res.status(200).json(msg)
+  } catch (err) {
+    console.error('Respond to booking proposal error:', err)
     return res.status(500).json({ message: err.message })
   }
 }
@@ -113,6 +242,8 @@ async function getMyConversations(req, res) {
 
 module.exports = {
   createMessage,
+  createBookingProposal,
+  respondToBookingProposal,
   getConversation,
   getMyConversations
 }

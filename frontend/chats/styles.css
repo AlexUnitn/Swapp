@@ -77,6 +77,126 @@ body, html { height: 100%; }
 }
 .compose button:disabled { background: #99c2ff; cursor: not-allowed; }
 
+.proposal-trigger {
+  background: #fff;
+  color: #0084ff;
+  border: 1px solid #0084ff;
+}
+
+.proposal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 18px;
+  border-top: 1px solid #e5e5e5;
+  background: #fff;
+}
+
+.proposal-panel.hidden {
+  display: none;
+}
+
+.proposal-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.proposal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+}
+
+.proposal-field input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.bubble.proposal {
+  background: #fff7e6;
+  color: #333;
+  border: 1px solid #f1c27a;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.bubble.proposal.you {
+  align-self: flex-end;
+}
+
+.bubble.proposal.other {
+  align-self: flex-start;
+}
+
+.proposal-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.proposal-item {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.proposal-dates {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.proposal-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.proposal-status.status-pending {
+  background: #ffe3b3;
+  color: #8a5400;
+}
+
+.proposal-status.status-accepted {
+  background: #d7f5e6;
+  color: #0f6a3d;
+}
+
+.proposal-status.status-rejected {
+  background: #ffe0e0;
+  color: #9f1d1d;
+}
+
+.proposal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.proposal-btn {
+  padding: 6px 10px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.proposal-btn.accept {
+  background: #1f9d5a;
+  color: #fff;
+}
+
+.proposal-btn.reject {
+  background: #d64545;
+  color: #fff;
+}
+
 /* css file or <style> block */
 .top-left-back {
   position: fixed;   /* keeps it in viewport */

@@ -14,6 +14,12 @@ const chatName = document.querySelector('.chat-header .chat-name');
 const messagesDiv = document.getElementById('messages');
 const composeForm = document.getElementById('composeForm');
 const msgInput = document.getElementById('msgInput');
+const proposeBtn = document.getElementById('proposeBtn');
+const proposalPanel = document.getElementById('proposalPanel');
+const proposalStart = document.getElementById('proposalStart');
+const proposalEnd = document.getElementById('proposalEnd');
+const proposalSend = document.getElementById('proposalSend');
+const proposalCancel = document.getElementById('proposalCancel');
 
 // ---- Utility Functions ----
 
@@ -59,6 +65,20 @@ function formatTime(dateString) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function formatDateLabel(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('it-IT');
+}
+
+function formatDateInput(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function setProposalPanelVisible(visible) {
+  proposalPanel.classList.toggle('hidden', !visible);
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s]);
@@ -96,9 +116,47 @@ function renderConvList(list) {
 }
 
 function addBubble(msg, isMe) {
+  if (msg.meta && msg.meta.type === 'booking_proposal') {
+    addProposalBubble(msg, isMe);
+    return;
+  }
   const div = document.createElement('div');
   div.className = `bubble ${isMe ? 'you' : 'other'}`;
   div.textContent = msg.text;
+  messagesDiv.appendChild(div);
+
+  const time = document.createElement('div');
+  time.className = 'time';
+  time.textContent = formatTime(msg.createdAt || msg.time || new Date());
+  time.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+  messagesDiv.appendChild(time);
+}
+
+function addProposalBubble(msg, isMe) {
+  const meta = msg.meta || {};
+  const status = meta.status || 'pending';
+  const title = meta.itemTitle || 'Oggetto';
+  const start = meta.requestedStartDate ? formatDateLabel(meta.requestedStartDate) : '';
+  const end = meta.requestedEndDate ? formatDateLabel(meta.requestedEndDate) : '';
+  const statusLabel = status === 'accepted' ? 'Accettata' : status === 'rejected' ? 'Rifiutata' : 'In attesa';
+  const myId = getCurrentUserId();
+  const recipientId = msg.recipient?._id || msg.recipient;
+  const canRespond = status === 'pending' && normalizeId(recipientId) === normalizeId(myId);
+
+  const div = document.createElement('div');
+  div.className = `bubble proposal ${isMe ? 'you' : 'other'}`;
+  div.innerHTML = `
+    <div class="proposal-title">Proposta prenotazione</div>
+    <div class="proposal-item">${escapeHtml(title)}</div>
+    ${start && end ? `<div class="proposal-dates">${escapeHtml(start)} → ${escapeHtml(end)}</div>` : ''}
+    <div class="proposal-status status-${status}">${statusLabel}</div>
+    ${canRespond ? `
+      <div class="proposal-actions">
+        <button class="proposal-btn accept" data-action="accept" data-id="${msg._id}">Accetta</button>
+        <button class="proposal-btn reject" data-action="reject" data-id="${msg._id}">Rifiuta</button>
+      </div>
+    ` : ''}
+  `;
   messagesDiv.appendChild(div);
 
   const time = document.createElement('div');
@@ -141,6 +199,48 @@ async function sendMessage(conversationKey, recipientId, text) {
     return await res.json();
   } catch (e) {
     console.error('Error sending message:', e);
+    throw e;
+  }
+}
+
+async function sendProposal(conversationKey, recipientId, itemId, requestedStartDate, requestedEndDate) {
+  try {
+    const res = await fetch(`${API_BASE}/api/messages/proposal`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify({
+        conversationKey,
+        recipient: recipientId,
+        itemId,
+        requestedStartDate,
+        requestedEndDate
+      })
+    });
+    if (!res.ok) throw new Error('Failed to send proposal');
+    return await res.json();
+  } catch (e) {
+    console.error('Error sending proposal:', e);
+    throw e;
+  }
+}
+
+async function respondToProposal(messageId, action) {
+  try {
+    const res = await fetch(`${API_BASE}/api/messages/proposal/${messageId}/respond`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify({ action })
+    });
+    if (!res.ok) throw new Error('Failed to respond to proposal');
+    return await res.json();
+  } catch (e) {
+    console.error('Error responding to proposal:', e);
     throw e;
   }
 }
@@ -330,6 +430,8 @@ async function openConversation(key) {
 
   chatAvatar.src = conv.avatar;
   chatName.textContent = conv.name;
+  proposeBtn.disabled = !conv.itemId;
+  setProposalPanelVisible(false);
 
   const chatItemDiv = document.getElementById('chat-item');
   
@@ -428,6 +530,102 @@ composeForm.addEventListener('submit', async e => {
     // Show error state on the bubble if needed
     console.error('Failed to send:', e);
     alert('Failed to send message. Please try again.');
+  }
+});
+
+proposeBtn.addEventListener('click', async () => {
+  if (!activeConvKey) return;
+  const conv = convs.find(c => c.key === activeConvKey);
+  if (!conv || !conv.itemId) {
+    alert('Seleziona una conversazione legata a un oggetto.');
+    return;
+  }
+
+  const itRes = await fetch(`/api/item/${conv.itemId}`, { headers: getAuthHeaders() });
+  if (!itRes.ok) {
+    alert('Impossibile caricare i dettagli dell’oggetto.');
+    return;
+  }
+  const it = await itRes.json();
+  if (it.status !== 'available') {
+    alert('L’oggetto non è disponibile per la prenotazione.');
+    return;
+  }
+
+  const startDefault = new Date();
+  const endDefault = new Date();
+  const duration = Number(it.maxLoanDuration) || 1;
+  endDefault.setDate(startDefault.getDate() + duration);
+
+  proposalStart.value = formatDateInput(startDefault);
+  proposalEnd.value = formatDateInput(endDefault);
+  proposalPanel.dataset.conversationKey = activeConvKey;
+  proposalPanel.dataset.recipientId = conv.counterpartId || '';
+  proposalPanel.dataset.itemId = conv.itemId;
+  setProposalPanelVisible(true);
+  proposalStart.focus();
+});
+
+proposalCancel.addEventListener('click', () => {
+  setProposalPanelVisible(false);
+});
+
+proposalSend.addEventListener('click', async () => {
+  const conversationKey = proposalPanel.dataset.conversationKey;
+  const recipientId = proposalPanel.dataset.recipientId;
+  const itemId = proposalPanel.dataset.itemId;
+  if (!conversationKey || !recipientId || !itemId) return;
+
+  const start = new Date(proposalStart.value);
+  const end = new Date(proposalEnd.value);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    alert('Intervallo date non valido.');
+    return;
+  }
+
+  const conv = convs.find(c => c.key === conversationKey);
+  if (!conv) return;
+
+  try {
+    const savedMsg = await sendProposal(
+      conversationKey,
+      recipientId,
+      itemId,
+      start.toISOString(),
+      end.toISOString()
+    );
+
+    addBubble(savedMsg, true);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    conv.lastMsg = savedMsg.text;
+    conv.lastTime = savedMsg.createdAt || new Date().toISOString();
+    convs.sort((a, b) => new Date(b.lastTime || 0) - new Date(a.lastTime || 0));
+    renderConvList(convs);
+    document.querySelectorAll('.conv-item').forEach(li => {
+      li.classList.toggle('active', li.dataset.key === activeConvKey);
+    });
+
+    setProposalPanelVisible(false);
+  } catch (e) {
+    alert('Invio proposta non riuscito.');
+  }
+});
+
+messagesDiv.addEventListener('click', async e => {
+  const btn = e.target.closest('.proposal-btn');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const messageId = btn.dataset.id;
+  if (!action || !messageId) return;
+
+  try {
+    await respondToProposal(messageId, action);
+    if (activeConvKey) {
+      openConversation(activeConvKey);
+    }
+  } catch (e) {
+    alert('Operazione non riuscita.');
   }
 });
 

@@ -30,7 +30,25 @@
 
       <div class="messages" id="messages"></div>
 
+      <div id="proposalPanel" class="proposal-panel hidden">
+        <div class="proposal-fields">
+          <label class="proposal-field">
+            Inizio
+            <input type="date" id="proposalStart"/>
+          </label>
+          <label class="proposal-field">
+            Fine
+            <input type="date" id="proposalEnd"/>
+          </label>
+        </div>
+        <div class="proposal-actions">
+          <button type="button" id="proposalSend" class="proposal-btn accept">Invia proposta</button>
+          <button type="button" id="proposalCancel" class="proposal-btn reject">Annulla</button>
+        </div>
+      </div>
+
       <form class="compose" id="composeForm">
+        <button type="button" id="proposeBtn" class="proposal-trigger">Proponi prenotazione</button>
         <input id="msgInput" type="text" placeholder="Write a message…" required/>
         <button type="submit">Send</button>
       </form>
